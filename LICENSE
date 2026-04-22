@@ -1,0 +1,56 @@
+MIT License
+
+Copyright (c) 2026 Microsoft Entra External Identities Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+ADDITIONAL TERMS & NOTICES:
+
+1. MICROSOFT DOCUMENTATION REFERENCES
+   This repository references and includes examples from Microsoft Azure and
+   Microsoft Entra documentation. Those resources are subject to the Microsoft
+   Learn License at: https://learn.microsoft.com/en-us/legal
+
+2. AZURE SDK AND LIBRARIES
+   This repository uses and provides examples for:
+   - Microsoft Graph PowerShell SDK (MIT License)
+   - MSAL-node (@azure/msal-node - MIT License)
+   - Express.js (MIT License)
+
+   Each of these maintains its own license terms.
+
+3. INTELLECTUAL PROPERTY
+   "Microsoft", "Azure", "Entra", and related trademarks are the property of
+   Microsoft Corporation. This repository is not affiliated with or endorsed
+   by Microsoft Corporation.
+
+4. NO WARRANTY
+   This repository is provided as-is for educational and implementation purposes.
+   Use in production environments is at your own risk. Always test thoroughly
+   and follow Microsoft's production readiness guidelines.
+
+5. CONTRIBUTION LICENSE AGREEMENT
+   By contributing to this repository, you agree that your contributions will
+   be licensed under the MIT License and you have the right to license them.
+
+---
+
+For the full MIT License text, see: https://opensource.org/licenses/MIT
