@@ -1,0 +1,372 @@
+# ============================================================================
+# Entra External Identities Repository - .gitignore
+# ============================================================================
+# Security-first .gitignore for CIAM/B2B implementation repository
+# Prevents accidental commit of secrets, credentials, and sensitive data
+
+# ============================================================================
+# SECRETS & CREDENTIALS - CRITICAL
+# ============================================================================
+
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.env
+
+# PowerShell credential files
+*credential*
+*secret*
+*password*
+
+# Configuration files with sensitive data
+appsettings.*.json
+!appsettings.Development.json
+
+# Azure credentials and connection strings
+.azure/
+azure-credentials.json
+connection-strings.json
+*connectionstring*
+
+# SSH & GPG keys
+!*.pub
+*.pem
+*.key
+*.cer
+*.pfx
+*.p12
+
+# OAuth tokens
+token*
+access_token*
+refresh_token*
+.oauth
+
+# Certificate files (private keys)
+*.crt
+*.key
+*.jks
+*.keystore
+
+# ============================================================================
+# Node.js
+# ============================================================================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+package-lock.json
+yarn.lock
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# npm cache
+.npm
+.eslintcache
+
+# Optional npm cache directory
+.npm/
+
+# Optional REPL history
+.node_repl_history
+
+# dist
+dist/
+build/
+.next/
+out/
+
+# ============================================================================
+# PowerShell & Windows
+# ============================================================================
+
+# PowerShell transcript files
+*_transcript.txt
+*.log
+
+# Windows thumbnail cache
+Thumbs.db
+ehthumbs.db
+
+# Windows folder config file
+Desktop.ini
+
+# Windows shortcuts
+*.lnk
+
+# PowerShell Profile
+Profile.ps1
+
+# Local machine-specific scripts
+local_*.ps1
+*.local.ps1
+
+# ============================================================================
+# IDE & Editor
+# ============================================================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+.devcontainer/
+
+# Visual Studio
+.vs/
+*.sln.user
+*.suo
+*.userprefs
+*.user
+.DS_Store
+
+# JetBrains IDEs
+.idea/
+.idea_modules/
+*.iml
+*.iws
+*.ipr
+
+# Sublime
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+.swp
+.swo
+*~
+.vim/
+Session.vim
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ============================================================================
+# Azure & Cloud
+# ============================================================================
+
+# Azure Storage Emulator
+AzureStorageEmulator/
+*.dbg
+*.mdf
+*.ldf
+
+# Azure Functions
+bin/
+obj/
+.funcignore
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ============================================================================
+# Testing & Build Artifacts
+# ============================================================================
+
+# Test coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Jest
+.jest-cache/
+
+# Mocha
+.mocha-reports/
+mocha-results.json
+
+# Build artifacts
+dist/
+build/
+*.tsbuildinfo
+
+# ============================================================================
+# OS & System Files
+# ============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+~*
+
+# ============================================================================
+# Logs
+# ============================================================================
+
+logs/
+*.log
+*.logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Application logs
+Application*.log
+PowerShell*.log
+Script*.log
+
+# ============================================================================
+# Azure Specific
+# ============================================================================
+
+# Azure App Service publish settings
+PublishSettings/
+*.PublishSettings
+*.azurewebsites.net
+
+# Azure Data Studio
+.ads/
+
+# Azure Bicep
+*.bicepparam
+
+# Local Azure Functions
+local.settings.json
+
+# ============================================================================
+# Database & Cache
+# ============================================================================
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache
+.cache/
+cache/
+
+# ============================================================================
+# Documentation Build Artifacts
+# ============================================================================
+
+docs/_build/
+docs/.doctrees/
+site/
+_site/
+.jekyll-cache/
+
+# ============================================================================
+# Package Manager Lock Files (optional - uncomment to ignore)
+# ============================================================================
+
+# package-lock.json (if you prefer to use npm ci)
+# yarn.lock (if you prefer to use yarn install --frozen-lockfile)
+
+# ============================================================================
+# Deployment & Release Artifacts
+# ============================================================================
+
+releases/
+dist/
+build/
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# ============================================================================
+# CI/CD Artifacts
+# ============================================================================
+
+.github/workflows/*.log
+.gitlab-ci/artifacts/
+jenkins/workspace/
+
+# ============================================================================
+# Miscellaneous
+# ============================================================================
+
+# Placeholder files (sometimes used in empty directories)
+!.gitkeep
+.gitkeep
+
+# Local development overrides
+local.config.json
+dev.config.json
+
+# Temporary configuration during development
+*.test.config.json
+*.staging.config.json
+
+# ============================================================================
+# Project-Specific (EEIDs Repository)
+# ============================================================================
+
+# PowerShell ISE settings
+*.ps1xml
+
+# Azure subscription context
+subscription.json
+
+# Test tenant information (sensitive)
+tenant-info.json
+test-credentials.json
+
+# Sample data that may contain PII
+sample-data/
+test-data/
+
+# ============================================================================
+# IMPORTANT NOTES
+# ============================================================================
+
+# DO NOT commit:
+# - .env files with secrets
+# - credentials or authentication tokens
+# - private keys or certificates
+# - subscription IDs or tenant IDs in config files
+# - email addresses or other PII
+# - connection strings with passwords
+# - API keys or client secrets
+# - OAuth tokens or refresh tokens
+
+# ============================================================================
+# Explicit Includes (tracked files - use ! prefix)
+# ============================================================================
+
+# Include example/template files
+!.env.example
+!.env.template
+!*.example.json
+!sample-config.json
+
+# Include documentation
+!docs/
+!README.md
+!LICENSE
+
+# Include scripts (they should not contain secrets)
+!scripts/
+!webapp/
+
