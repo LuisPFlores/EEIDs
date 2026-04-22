@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile — EEIDS Web App</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .card { background: #fff; border-radius: 12px; padding: 48px 56px; max-width: 480px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+    h1 { font-size: 1.4rem; color: #111827; margin-bottom: 24px; }
+    .avatar { width: 64px; height: 64px; border-radius: 50%; background: #0078d4; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.6rem; font-weight: 700; margin-bottom: 20px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .field span { font-size: 0.95rem; color: #111827; word-break: break-all; }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 28px 0; }
+    .btn-logout { display: inline-block; background: #fff; color: #dc2626; padding: 10px 28px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600; border: 1.5px solid #dc2626; transition: background 0.2s; }
+    .btn-logout:hover { background: #fef2f2; }
+    #loading { color: #6b7280; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="avatar" id="avatar">…</div>
+    <h1>Your Profile</h1>
+    <p id="loading">Loading account info…</p>
+    <div id="profile-data" style="display:none">
+      <div class="field">
+        <label>Display Name</label>
+        <span id="name"></span>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <span id="email"></span>
+      </div>
+      <div class="field">
+        <label>Object ID</label>
+        <span id="oid"></span>
+      </div>
+    </div>
+    <hr class="divider" />
+    <a class="btn-logout" href="/auth/logout">Sign out</a>
+  </div>
+
+  <script>
+    fetch('/api/me')
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(user => {
+        document.getElementById('name').textContent = user.name || '—';
+        document.getElementById('email').textContent = user.email || user.username || '—';
+        document.getElementById('oid').textContent = user.oid || '—';
+        document.getElementById('avatar').textContent = (user.name || user.email || '?')[0].toUpperCase();
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('profile-data').style.display = 'block';
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  </script>
+</body>
+</html>
