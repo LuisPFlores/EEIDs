@@ -1,0 +1,24 @@
+{
+  "name": "eeids-saml-webapp",
+  "version": "1.0.0",
+  "description": "Standalone SAML 2.0 test app for Entra External Identities PoC",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [
+    "saml",
+    "entra",
+    "ciam",
+    "express",
+    "passport"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@node-saml/passport-saml": "^5.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "passport": "^0.7.0"
+  }
+}

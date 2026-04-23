@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAML 2.0 Test App</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at top right, #dbeafe 0%, #f3f4f6 40%, #f8fafc 100%);
+      padding: 16px;
+    }
+    .card {
+      width: 100%;
+      max-width: 500px;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
+      padding: 38px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      color: #0369a1;
+      border-radius: 999px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      letter-spacing: 0.04em;
+    }
+    h1 {
+      font-size: 30px;
+      color: #0f172a;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #475569;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      font-size: 15px;
+    }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      background: #0078d4;
+      color: #fff;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 12px 28px;
+      transition: background .2s ease;
+    }
+    .btn:hover { background: #106ebe; }
+    .tip {
+      margin-top: 26px;
+      text-align: left;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      color: #334155;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    code {
+      background: #e2e8f0;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <span class="badge">SAML 2.0 Protocol · Port 3002</span>
+    <h1>External IdP SAML Test</h1>
+    <p>
+      Validate SAML single sign-on using an external Identity Provider
+      (Okta, ADFS, PingFederate, or similar) with Assertion Consumer Service
+      callback handling in this app.
+    </p>
+
+    <a class="btn" href="/auth/login">Sign in with SAML</a>
+
+    <div class="tip">
+      Configure your IdP with:
+      <br />
+      Entity ID: <code>http://localhost:3002/metadata.xml</code>
+      <br />
+      ACS URL: <code>http://localhost:3002/auth/callback</code>
+      <br />
+      Metadata endpoint: <code>/metadata.xml</code>
+    </div>
+  </main>
+</body>
+</html>

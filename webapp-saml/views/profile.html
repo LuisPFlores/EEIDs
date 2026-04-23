@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAML Profile</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      background: #f1f5f9;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px 16px;
+    }
+    .card {
+      width: 100%;
+      max-width: 760px;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(15, 23, 42, 0.1);
+      padding: 28px;
+    }
+    .badge {
+      display: inline-block;
+      background: #ecfeff;
+      border: 1px solid #a5f3fc;
+      color: #0e7490;
+      border-radius: 999px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+    h1 { font-size: 27px; color: #0f172a; margin-bottom: 20px; }
+    .row { margin-bottom: 12px; }
+    .row label {
+      display: block;
+      font-size: 12px;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 3px;
+      font-weight: 700;
+    }
+    .row span {
+      color: #1e293b;
+      font-size: 15px;
+      word-break: break-word;
+    }
+    .section-title {
+      margin-top: 22px;
+      margin-bottom: 8px;
+      color: #334155;
+      font-weight: 700;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    pre {
+      background: #0f172a;
+      color: #d1fae5;
+      border-radius: 8px;
+      padding: 14px;
+      max-height: 330px;
+      overflow: auto;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      padding: 10px 16px;
+      font-size: 14px;
+    }
+    .btn-primary { background: #0078d4; color: #fff; }
+    .btn-primary:hover { background: #106ebe; }
+    .btn-outline { border: 1px solid #cbd5e1; color: #1f2937; }
+    .btn-outline:hover { background: #f8fafc; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <span class="badge">Authenticated with SAML 2.0</span>
+    <h1>User Profile</h1>
+
+    <div class="row">
+      <label>Display Name</label>
+      <span id="displayName">-</span>
+    </div>
+    <div class="row">
+      <label>Email</label>
+      <span id="email">-</span>
+    </div>
+    <div class="row">
+      <label>NameID</label>
+      <span id="nameID">-</span>
+    </div>
+    <div class="row">
+      <label>NameID Format</label>
+      <span id="nameIDFormat">-</span>
+    </div>
+    <div class="row">
+      <label>Issuer</label>
+      <span id="issuer">-</span>
+    </div>
+    <div class="row">
+      <label>Session Index</label>
+      <span id="sessionIndex">-</span>
+    </div>
+
+    <p class="section-title">Raw Attributes</p>
+    <pre id="rawClaims">Loading...</pre>
+
+    <div class="actions">
+      <a class="btn btn-primary" href="/metadata.xml">View SP Metadata</a>
+      <a class="btn btn-outline" href="/auth/logout">Sign out</a>
+    </div>
+  </main>
+
+  <script>
+    fetch('/api/me')
+      .then((res) => {
+        if (!res.ok) throw new Error('Not authenticated');
+        return res.json();
+      })
+      .then((user) => {
+        const set = (id, value) => {
+          document.getElementById(id).textContent = value || '-';
+        };
+
+        set('displayName', user.displayName);
+        set('email', user.email);
+        set('nameID', user.nameID);
+        set('nameIDFormat', user.nameIDFormat);
+        set('issuer', user.issuer);
+        set('sessionIndex', user.sessionIndex);
+
+        document.getElementById('rawClaims').textContent = JSON.stringify(user.attributes, null, 2);
+      })
+      .catch(() => {
+        window.location.href = '/';
+      });
+  </script>
+</body>
+</html>

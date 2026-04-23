@@ -254,6 +254,67 @@ What this app tests:
 
 ---
 
+### 6️⃣ Test Auth - SAML 2.0 (`webapp-saml/`)
+
+A standalone Node.js app using **Passport + SAML strategy** for testing SAML 2.0 sign-in with an external IdP (Okta, ADFS, PingFederate, or similar).
+
+**Port:** `3002` · **Protocol:** SAML 2.0 · **Library:** `@node-saml/passport-saml`
+
+#### Run the App
+
+```bash
+# 1. Navigate to the SAML webapp
+cd webapp-saml
+
+# 2. Install dependencies
+npm install
+
+# 3. Create and fill in .env
+cp .env.example .env
+```
+
+Option A - explicit IdP settings in `.env`:
+
+```bash
+PORT=3002
+SESSION_SECRET=<random-string>
+
+SAML_SP_ENTITY_ID=http://localhost:3002/metadata.xml
+SAML_CALLBACK_URL=http://localhost:3002/auth/callback
+
+SAML_IDP_ENTRY_POINT=https://idp.example.com/sso/saml
+SAML_IDP_ISSUER=https://idp.example.com/entity-id
+SAML_IDP_CERT=<base64-x509-or-pem-certificate>
+```
+
+Option B - metadata URL fallback:
+
+```bash
+SAML_IDP_METADATA_URL=https://idp.example.com/metadata
+```
+
+If explicit IdP values are missing, the app attempts to resolve issuer, SSO entry point, and signing cert from metadata.
+
+```bash
+# 4. Start the app
+npm start
+
+# 5. Open in browser
+# http://localhost:3002
+# Sign in -> http://localhost:3002/auth/login
+# Metadata -> http://localhost:3002/metadata.xml
+```
+
+What this app tests:
+- ✅ SAML AuthnRequest initiation via redirect
+- ✅ Assertion Consumer Service callback (`POST /auth/callback`)
+- ✅ SAML assertion signature validation
+- ✅ User claim extraction and profile display
+- ✅ Service Provider metadata publishing (`/metadata.xml`)
+- ✅ Session-protected routes and sign-out
+
+---
+
 ## 📚 Documentation
 
 ### 📖 Main Guides
@@ -271,13 +332,18 @@ What this app tests:
    - Security best practices
    - Troubleshooting guide
 
-3. **[scripts-step-by-step-guide.md](docs/scripts-step-by-step-guide.md)**
+3. **[authentication-protocol-scenarios.md](docs/authentication-protocol-scenarios.md)**
+  - Scenario-by-scenario protocol summary
+  - Use cases for OAuth 2.0, SAML 2.0, and WS-Federation
+  - Included components and expected results
+
+4. **[scripts-step-by-step-guide.md](docs/scripts-step-by-step-guide.md)**
    - Detailed PowerShell script execution guide
    - Parameter descriptions
    - Expected outputs
    - Error handling
 
-4. **[entra-external-id-testing-checklist.md](docs/entra-external-id-testing-checklist.md)**
+5. **[entra-external-id-testing-checklist.md](docs/entra-external-id-testing-checklist.md)**
    - End-to-end testing procedures
    - Validation checklists
    - Common test scenarios
@@ -598,6 +664,7 @@ Created by the Microsoft Entra External Identities team with contributions from 
 
 - 🚀 [Get Started](docs/entra-external-id-poc-guide.md)
 - 📖 [Authentication Protocols](docs/entra-ciam-authentication-protocols.md)
+- 📄 [Authentication Protocol Scenarios](docs/authentication-protocol-scenarios.md)
 - 🧪 [Testing Guide](docs/entra-external-id-testing-checklist.md)
 - ⚙️ [Script Reference](docs/scripts-step-by-step-guide.md)
 - 🔐 [Security Best Practices](docs/entra-ciam-authentication-protocols.md#security-best-practices)
