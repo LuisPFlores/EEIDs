@@ -146,15 +146,15 @@ cp .env.example .env
 Edit `.env` with your Entra CIAM values:
 
 ```bash
-TENANT_ID=<your-ciam-tenant-id>          # e.g. 74a83386-...
-TENANT_SUBDOMAIN=<your-subdomain>         # e.g. titacorp (NOT the GUID)
+TENANT_ID=<your-ciam-tenant-id>
+TENANT_SUBDOMAIN=<your-subdomain>         # subdomain prefix of your ciamlogin.com URL, NOT the GUID
 CLIENT_ID=<your-app-registration-id>
 CLIENT_SECRET=<your-app-secret>
 REDIRECT_URI=http://localhost:3000/auth/redirect
 USER_FLOW=<your-user-flow-name>           # e.g. B2C_1_SignUpSignIn
 ```
 
-> ⚠️ `TENANT_SUBDOMAIN` must be the subdomain part of your CIAM login URL (e.g. `titacorp` from `titacorp.ciamlogin.com`), **not** the tenant GUID.
+> ⚠️ `TENANT_SUBDOMAIN` must be the subdomain prefix of your CIAM login URL (e.g. `contoso` from `contoso.ciamlogin.com`), **not** the tenant GUID.
 
 ```bash
 # 4. Start the app
