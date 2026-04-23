@@ -30,63 +30,7 @@ This repository provides:
 
 ---
 
-## 📂 Repository Structure
-
-```
-EEIDs/
-├── README.md                                      # This file
-├── .gitignore                                     # Git ignore patterns
-│
-├── docs/                                          # Documentation & guides
-│   ├── entra-external-id-poc-guide.md            # Complete PoC walkthrough
-│   ├── entra-external-id-testing-checklist.md    # Testing procedures
-│   ├── scripts-step-by-step-guide.md             # PowerShell script guide
-│   └── entra-ciam-authentication-protocols.md    # Auth protocol deep dive
-│
-├── scripts/                                       # Automation scripts
-│   │
-│   ├── CIAM/                                     # Customer Identity (sign-up/sign-in)
-│   │   ├── README.md                             # CIAM scripts overview
-│   │   ├── AUTHENTICATION-PROTOCOLS.md           # Quick reference for auth
-│   │   ├── Connect-EntraCIAM.ps1                 # Connect to CIAM tenant
-│   │   ├── Deploy-CIAMFull.ps1                   # Full CIAM deployment
-│   │   ├── New-CIAMTenant.ps1                    # Create External tenant
-│   │   ├── New-CIAMUserFlow.ps1                  # Create user flow
-│   │   ├── Register-CIAMApp.ps1                  # Register app
-│   │   ├── Register-CIAMOIDCApp.ps1              # OAuth 2.0/OIDC registration
-│   │   ├── Register-CIAMSAMLApp.ps1              # SAML 2.0 registration
-│   │   ├── Register-CIAMWSFedApp.ps1             # WS-Federation registration
-│   │   ├── Set-CIAMBranding.ps1                  # Configure branding
-│   │   └── Set-CIAMIdentityProviders.ps1         # Configure identity providers
-│   │
-│   └── B2B/                                      # B2B Collaboration (guest users)
-│       ├── README.md                             # B2B scripts overview
-│       ├── Connect-EntraB2B.ps1                  # Connect to B2B tenant
-│       ├── Deploy-B2BFull.ps1                    # Full B2B deployment
-│       ├── Deploy-B2BDirectConnect.ps1           # B2B Direct Connect setup
-│       ├── Invite-B2BGuest.ps1                   # Invite guest users
-│       ├── Set-B2BCollaborationSettings.ps1      # Configure collaboration
-│       ├── Set-B2BConditionalAccess.ps1          # Set CA policies
-│       ├── Set-B2BCrossTenantAccess.ps1          # Configure cross-tenant
-│       ├── Set-B2BDirectConnect.ps1              # Set Direct Connect
-│       └── Set-TeamsSharedChannelPolicy.ps1      # Teams channel settings
-│
-└── webapp/                                        # Sample Node.js web application
-    ├── app.js                                     # Express app entry point
-    ├── package.json                               # npm dependencies
-    ├── .env.example                               # Environment template
-    │
-    ├── routes/
-    │   └── auth.js                                # OIDC/CIAM auth routes
-    │
-    └── views/
-        ├── index.html                             # Home page
-        └── profile.html                           # Protected profile page
-```
-
----
-
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -182,40 +126,131 @@ EEIDs/
 
 ---
 
-### 4️⃣ Run Sample Web Application
+### 4️⃣ Test Auth — OAuth 2.0 / OpenID Connect (`webapp/`)
 
-The included web app demonstrates CIAM authentication in a real Node.js application.
+A Node.js app using **MSAL-node** that demonstrates the OAuth 2.0 Authorization Code flow with PKCE against an Entra External ID (CIAM) tenant.
+
+**Port:** `3000` · **Protocol:** OAuth 2.0 / OIDC · **Library:** `@azure/msal-node`
 
 ```bash
-# 1. Navigate to webapp directory
+# 1. Navigate to the OIDC webapp
 cd webapp
 
 # 2. Install dependencies
 npm install
 
-# 3. Create .env file
+# 3. Create and fill in .env
 cp .env.example .env
-
-# 4. Fill in your Entra configuration
-# Edit .env with:
-# - TENANT_ID=your-ciam-tenant-id
-# - CLIENT_ID=your-app-registration-id
-# - CLIENT_SECRET=your-app-secret
-# - REDIRECT_URI=http://localhost:3000/auth/redirect
-
-# 5. Start the application
-npm start
-
-# 6. Open browser
-# http://localhost:3000
 ```
 
-The app demonstrates:
-- ✅ OAuth 2.0 / OpenID Connect sign-in
-- ✅ User profile retrieval
-- ✅ Session management
-- ✅ Protected routes
+Edit `.env` with your Entra CIAM values:
+
+```bash
+TENANT_ID=<your-ciam-tenant-id>          # e.g. 74a83386-...
+TENANT_SUBDOMAIN=<your-subdomain>         # e.g. titacorp (NOT the GUID)
+CLIENT_ID=<your-app-registration-id>
+CLIENT_SECRET=<your-app-secret>
+REDIRECT_URI=http://localhost:3000/auth/redirect
+USER_FLOW=<your-user-flow-name>           # e.g. B2C_1_SignUpSignIn
+```
+
+> ⚠️ `TENANT_SUBDOMAIN` must be the subdomain part of your CIAM login URL (e.g. `titacorp` from `titacorp.ciamlogin.com`), **not** the tenant GUID.
+
+```bash
+# 4. Start the app
+npm start
+
+# 5. Open in browser
+# http://localhost:3000
+# Sign in → http://localhost:3000/auth/login
+```
+
+What this app tests:
+- ✅ OAuth 2.0 Authorization Code + PKCE flow
+- ✅ OIDC ID token validation
+- ✅ User profile claims (name, email, OID)
+- ✅ Session management and protected routes
 - ✅ Sign-out and token cleanup
+
+---
+
+### 5️⃣ Test Auth — WS-Federation (`webapp-wsfed/`)
+
+A Node.js app using **passport-wsfed-saml2** that demonstrates the WS-Federation passive sign-in flow against a standard Entra (workforce) tenant. Useful for validating legacy AD FS federation scenarios.
+
+**Port:** `3001` · **Protocol:** WS-Federation · **Library:** `passport-wsfed-saml2`
+
+#### Azure Portal Setup (one-time)
+
+Before running, register the app in Entra:
+
+1. Go to [Entra Admin Center](https://entra.microsoft.com) → **Enterprise applications** → **New application** → **Create your own application**
+2. Name it (e.g. `WS-Fed Test App`) and select **"Integrate any other application you don't find in the gallery"**
+3. Go to **Single sign-on** → **SAML**
+4. Set **Identifier (Entity ID)**: `https://login.microsoftonline.com/<TENANT_ID>/`
+5. Set **Reply URL (ACS URL)**: `http://localhost:3001/auth/callback`
+6. Go to **Users and groups** → assign your test user
+
+#### Run the App
+
+```bash
+# 1. Navigate to the WS-Fed webapp
+cd webapp-wsfed
+
+# 2. Install dependencies
+npm install
+
+# 3. Create and fill in .env
+cp .env.example .env
+```
+
+Edit `.env` with your values:
+
+```bash
+TENANT_ID=<your-tenant-id>
+WSFED_REALM=https://login.microsoftonline.com/<TENANT_ID>/
+WSFED_IDP_URL=https://login.microsoftonline.com/<TENANT_ID>/wsfed
+WSFED_METADATA_URL=https://login.microsoftonline.com/<TENANT_ID>/federationmetadata/2007-06/federationmetadata.xml
+WSFED_CALLBACK_URL=http://localhost:3001/auth/callback
+WSFED_THUMBPRINTS=<comma-separated SHA1 thumbprints>
+SESSION_SECRET=<random-string>
+```
+
+> **Getting thumbprints:** Run the following from the `webapp-wsfed/` directory and paste the output into `WSFED_THUMBPRINTS`:
+>
+> ```bash
+> node -e "
+> const https=require('https'),crypto=require('crypto');
+> https.get('https://login.microsoftonline.com/<TENANT_ID>/federationmetadata/2007-06/federationmetadata.xml',r=>{
+>   let d='';r.on('data',c=>d+=c);
+>   r.on('end',()=>{
+>     const m=d.match(/<X509Certificate[^>]*>([^<]+)<\/X509Certificate>/g)||[];
+>     const t=[...new Set(m.map(x=>{const b=x.replace(/<[^>]+>/g,'').replace(/\s/g,'');
+>       return crypto.createHash('sha1').update(Buffer.from(b,'base64')).digest('hex').toUpperCase();}))];
+>     console.log(t.join(','));
+>   });
+> });
+> "
+> ```
+>
+> If you get a thumbprint mismatch error after signing in, add the `calculated:` value from the error message to your `WSFED_THUMBPRINTS` — Entra sometimes signs tokens with a cert not yet reflected in the metadata endpoint.
+
+```bash
+# 4. Start the app
+npm start
+
+# 5. Open in browser
+# http://localhost:3001
+# Sign in → http://localhost:3001/auth/login
+```
+
+What this app tests:
+- ✅ WS-Federation passive redirect (`wa=wsignin1.0`)
+- ✅ XML security token signature validation
+- ✅ Entra claim extraction (OID, email, UPN, name)
+- ✅ Raw WS-Federation claims display (for debugging)
+- ✅ Session management and protected routes
+- ✅ WS-Fed global sign-out (`wa=wsignout1.0`)
 
 ---
 
