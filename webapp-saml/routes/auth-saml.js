@@ -1,6 +1,47 @@
 const express = require('express');
 const { Strategy: SamlStrategy } = require('@node-saml/passport-saml');
 
+const CLAIMS = {
+  OID: 'http://schemas.microsoft.com/identity/claims/objectidentifier',
+  EMAIL: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
+  UPN: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn',
+  DISPLAYNAME: 'http://schemas.microsoft.com/identity/claims/displayname',
+  NAME: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name',
+  NAMEID: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
+  GIVENNAME: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname',
+  SURNAME: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname',
+  TENANTID: 'http://schemas.microsoft.com/identity/claims/tenantid',
+  AUTHMETHOD: 'http://schemas.microsoft.com/claims/authnmethodsreferences',
+  AUTHMETHOD_ALT: 'http://schemas.microsoft.com/ws/2008/06/identity/claims/authenticationmethod',
+};
+
+function firstNonEmpty(...values) {
+  for (const value of values) {
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item !== undefined && item !== null && String(item).trim()) {
+          return String(item).trim();
+        }
+      }
+      continue;
+    }
+
+    if (value && typeof value === 'object') {
+      const candidate = value._ || value.value || value.text;
+      if (candidate !== undefined && candidate !== null && String(candidate).trim()) {
+        return String(candidate).trim();
+      }
+      continue;
+    }
+
+    if (value !== undefined && value !== null && String(value).trim()) {
+      return String(value).trim();
+    }
+  }
+
+  return undefined;
+}
+
 function normalizeCert(certValue) {
   if (!certValue) return null;
   const trimmed = certValue.trim();
@@ -102,29 +143,64 @@ async function createSamlAuthModule(passport) {
 
       const attributes = { ...profile };
 
-      const email =
-        attributes.email ||
-        attributes.mail ||
-        attributes['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
-        attributes.nameID;
-
-      const displayName =
-        attributes.displayName ||
-        attributes.name ||
-        attributes.cn ||
-        `${attributes.givenName || ''} ${attributes.sn || attributes.surname || ''}`.trim() ||
-        attributes.nameID;
+      const givenName = firstNonEmpty(
+        attributes[CLAIMS.GIVENNAME],
+        attributes.givenName,
+        attributes.given_name
+      );
+      const familyName = firstNonEmpty(
+        attributes[CLAIMS.SURNAME],
+        attributes.sn,
+        attributes.surname,
+        attributes.family_name
+      );
+      const composedName = [givenName, familyName].filter(Boolean).join(' ').trim();
+      const nameID = firstNonEmpty(
+        attributes.nameID,
+        attributes.nameId,
+        attributes[CLAIMS.NAMEID],
+        attributes[CLAIMS.NAME]
+      );
+      const email = firstNonEmpty(
+        attributes[CLAIMS.EMAIL],
+        attributes.email,
+        attributes.mail,
+        attributes[CLAIMS.UPN],
+        nameID
+      );
+      const displayName = firstNonEmpty(
+        attributes[CLAIMS.DISPLAYNAME],
+        attributes.displayName,
+        attributes.name,
+        attributes.cn,
+        composedName,
+        nameID,
+        email && email.split('@')[0]
+      );
+      const upn = firstNonEmpty(
+        attributes[CLAIMS.UPN],
+        attributes.upn,
+        nameID,
+        attributes[CLAIMS.NAME]
+      );
 
       const user = {
-        nameID: attributes.nameID,
+        oid: firstNonEmpty(attributes[CLAIMS.OID], attributes.oid),
+        email,
+        upn,
+        name: displayName,
+        displayName,
+        givenName,
+        familyName,
+        surname: familyName,
+        tenantId: firstNonEmpty(attributes[CLAIMS.TENANTID], attributes.tid, attributes.tenantId),
+        authMethod: firstNonEmpty(attributes[CLAIMS.AUTHMETHOD], attributes[CLAIMS.AUTHMETHOD_ALT], attributes.authmethod),
+        nameID,
         nameIDFormat: attributes.nameIDFormat,
         sessionIndex: attributes.sessionIndex,
         issuer: attributes.issuer || idpIssuer,
-        email,
-        displayName,
-        givenName: attributes.givenName || attributes.given_name,
-        surname: attributes.sn || attributes.surname || attributes.family_name,
         attributes,
+        rawClaims: attributes,
       };
 
       return done(null, user);

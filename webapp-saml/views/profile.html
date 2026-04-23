@@ -103,6 +103,26 @@
       <span id="email">-</span>
     </div>
     <div class="row">
+      <label>UPN</label>
+      <span id="upn">-</span>
+    </div>
+    <div class="row">
+      <label>Given Name / Surname</label>
+      <span id="fullNameParts">-</span>
+    </div>
+    <div class="row">
+      <label>Object ID</label>
+      <span id="oid">-</span>
+    </div>
+    <div class="row">
+      <label>Tenant ID</label>
+      <span id="tenantId">-</span>
+    </div>
+    <div class="row">
+      <label>Auth Method</label>
+      <span id="authMethod">-</span>
+    </div>
+    <div class="row">
       <label>NameID</label>
       <span id="nameID">-</span>
     </div>
@@ -139,14 +159,19 @@
           document.getElementById(id).textContent = value || '-';
         };
 
-        set('displayName', user.displayName);
+        set('displayName', user.displayName || user.name || user.email || user.upn);
         set('email', user.email);
+        set('upn', user.upn);
+        set('fullNameParts', [user.givenName, user.familyName].filter(Boolean).join(' ') || null);
+        set('oid', user.oid);
+        set('tenantId', user.tenantId);
+        set('authMethod', user.authMethod);
         set('nameID', user.nameID);
         set('nameIDFormat', user.nameIDFormat);
         set('issuer', user.issuer);
         set('sessionIndex', user.sessionIndex);
 
-        document.getElementById('rawClaims').textContent = JSON.stringify(user.attributes, null, 2);
+        document.getElementById('rawClaims').textContent = JSON.stringify(user.rawClaims || user.attributes, null, 2);
       })
       .catch(() => {
         window.location.href = '/';
