@@ -396,27 +396,6 @@ curl -X GET "https://{tenant-id}.ciamlogin.com/{tenant-id}/Saml2/GetMetadata"
 | `Set-CIAMBranding.ps1` | Customize branding | 5 min |
 | `Deploy-CIAMFull.ps1` | Deploy complete CIAM setup | 15 min |
 
-## 🛠️ Technology Stack
-
-### Documentation
-- Markdown with embedded YAML
-
-### Automation
-- **PowerShell 7+** with Microsoft.Graph SDK
-- **AzureAD PowerShell** module
-
-### Web Application
-- **Node.js 18+** runtime
-- **Express 4.x** web framework
-- **MSAL-node** for OAuth 2.0 / OIDC
-- **express-session** for session management
-- **dotenv** for configuration
-
-### Cloud Platform
-- **Microsoft Azure**
-- **Microsoft Entra ID** (formerly Azure AD)
-- **Entra External ID** (CIAM)
-
 ---
 
 ## 📥 Installation & Setup
