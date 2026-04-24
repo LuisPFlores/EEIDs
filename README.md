@@ -484,6 +484,19 @@ DEBUG=msal:* npm start
 curl https://{tenant-id}.ciamlogin.com/{tenant-id}/v2.0/.well-known/openid-configuration
 ```
 
+### SAML 2.0 Quick Fixes (`webapp-saml/`)
+
+If you see `Invalid document signature` while testing SAML:
+
+1. Verify you are running the same folder you are editing (for example `c:/EEIDs/webapp-saml` vs a OneDrive clone).
+2. Ensure `SAML_SP_ENTITY_ID` exactly matches your Entra app Identifier (Entity ID).
+3. Ensure `SAML_CALLBACK_URL` exactly matches your Entra Reply URL (ACS).
+4. Use `SAML_IDP_CERT` with the full Base64 X.509 certificate value, not a thumbprint.
+5. If using metadata mode, use the Entra federation metadata URL for the same tenant/app and remove conflicting explicit cert values.
+6. Restart the app after `.env` updates and ensure no stale process is bound to port `3002`.
+
+If you see `AADSTS700016`, the app Identifier in Entra does not match `SAML_SP_ENTITY_ID` or the request is going to the wrong tenant.
+
 ### Common Issues
 
 See [docs/entra-ciam-authentication-protocols.md#troubleshooting](docs/entra-ciam-authentication-protocols.md#troubleshooting) for detailed solutions.

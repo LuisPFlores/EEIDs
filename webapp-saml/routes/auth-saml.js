@@ -55,17 +55,6 @@ function normalizeCert(certValue) {
   return `-----BEGIN CERTIFICATE-----\n${wrapped}\n-----END CERTIFICATE-----`;
 }
 
-function normalizeCertList(certValue) {
-  if (!certValue) return [];
-
-  const certs = String(certValue)
-    .split(',')
-    .map((entry) => normalizeCert(entry))
-    .filter(Boolean);
-
-  return [...new Set(certs)];
-}
-
 function parseMetadataValue(xml, regex) {
   const match = xml.match(regex);
   return match?.[1] || null;
@@ -92,15 +81,14 @@ async function resolveIdpFromMetadata(url) {
   );
 
   const entryPoint = redirectSso || postSso;
+  const certRaw = parseMetadataValue(xml, /<(?:\w+:)?X509Certificate>([^<]+)<\/(?:\w+:)?X509Certificate>/i);
+  const cert = normalizeCert(certRaw);
 
-  const certMatches = [...xml.matchAll(/<(?:\w+:)?X509Certificate>([^<]+)<\/(?:\w+:)?X509Certificate>/gi)];
-  const certs = [...new Set(certMatches.map((match) => normalizeCert(match[1])).filter(Boolean))];
-
-  if (!issuer || !entryPoint || certs.length === 0) {
-    throw new Error('Metadata parsing failed: missing issuer, entry point, or signing certificate(s)');
+  if (!issuer || !entryPoint || !cert) {
+    throw new Error('Metadata parsing failed: missing issuer, entry point, or signing certificate');
   }
 
-  return { issuer, entryPoint, certs };
+  return { issuer, entryPoint, cert };
 }
 
 async function createSamlAuthModule(passport) {
@@ -119,9 +107,9 @@ async function createSamlAuthModule(passport) {
 
   let idpIssuer = SAML_IDP_ISSUER;
   let idpEntryPoint = SAML_IDP_ENTRY_POINT;
-  let idpCerts = normalizeCertList(SAML_IDP_CERT);
+  let idpCert = normalizeCert(SAML_IDP_CERT);
 
-  const hasExplicitIdpConfig = Boolean(idpIssuer && idpEntryPoint && idpCerts.length > 0);
+  const hasExplicitIdpConfig = Boolean(idpIssuer && idpEntryPoint && idpCert);
 
   if (!hasExplicitIdpConfig) {
     if (!SAML_IDP_METADATA_URL) {
@@ -133,10 +121,8 @@ async function createSamlAuthModule(passport) {
     const resolved = await resolveIdpFromMetadata(SAML_IDP_METADATA_URL);
     idpIssuer = resolved.issuer;
     idpEntryPoint = resolved.entryPoint;
-    idpCerts = resolved.certs;
+    idpCert = resolved.cert;
   }
-
-  const idpCert = idpCerts.length === 1 ? idpCerts[0] : idpCerts;
 
   const strategy = new SamlStrategy(
     {
