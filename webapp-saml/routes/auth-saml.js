@@ -146,7 +146,10 @@ async function createSamlAuthModule(passport) {
       idpCert,
       idpIssuer,
       disableRequestedAuthnContext: true,
-      wantAssertionsSigned: true,
+      // Entra may sign either the SAML Response, the Assertion, or both.
+      // Requiring only assertion signatures can fail valid Entra responses.
+      wantAssertionsSigned: false,
+      wantAuthnResponseSigned: false,
       signatureAlgorithm: 'sha256',
       digestAlgorithm: 'sha256',
     },
