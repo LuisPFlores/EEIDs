@@ -147,7 +147,7 @@ $storageKey = az storage account keys list `
     --resource-group $ResourceGroupName `
     --query "[0].value" -o tsv
 
-az storage blob upload `
+$uploadResult = az storage blob upload `
     --account-name $StorageAccountName `
     --account-key $storageKey `
     --container-name $containerName `
@@ -155,7 +155,12 @@ az storage blob upload `
     --file $tempFile `
     --content-type "text/html" `
     --overwrite `
-    --output none
+    --no-progress `
+    --output none 2>&1
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Blob upload failed: $uploadResult"
+}
 Write-Success "Page layout uploaded"
 
 # Clean up temp file
