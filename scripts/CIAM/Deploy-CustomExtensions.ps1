@@ -170,7 +170,7 @@ if ($Scenario -in @("CertValidation", "Both")) {
     Write-Success "Function App '$certFunctionAppName' created"
 
     # Build and deploy
-    $certPath = Join-Path $PSScriptRoot "..\custom-extensions\cert-validation"
+    $certPath = Join-Path $PSScriptRoot "..\..\custom-extensions\cert-validation"
     Push-Location $certPath
     try {
         dotnet publish -c Release -o ./publish 2>&1 | Out-Null
@@ -226,7 +226,7 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
     Write-Success "reCAPTCHA secret configured"
 
     # Deploy
-    $captchaPath = Join-Path $PSScriptRoot "..\custom-extensions\captcha-validation"
+    $captchaPath = Join-Path $PSScriptRoot "..\..\custom-extensions\captcha-validation"
     Push-Location $captchaPath
     try {
         npm install --production 2>&1 | Out-Null
