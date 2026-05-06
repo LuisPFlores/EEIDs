@@ -141,13 +141,15 @@ Write-Success "reCAPTCHA site key injected"
 # Upload to $web container
 Write-Step "Uploading to Azure Blob Storage"
 
+$containerName = '$web'
 az storage blob upload `
     --account-name $StorageAccountName `
-    --container-name "`$web" `
+    --container-name $containerName `
     --name "signup-captcha.html" `
     --file $tempFile `
     --content-type "text/html" `
     --overwrite `
+    --auth-mode login `
     --output none
 Write-Success "Page layout uploaded"
 
