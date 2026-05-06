@@ -65,6 +65,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$env:AZURE_CORE_ONLY_SHOW_ERRORS = "true"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helper Functions
