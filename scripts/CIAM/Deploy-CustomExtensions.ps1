@@ -215,7 +215,7 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
         --resource-group $ResourceGroupName `
         --consumption-plan-location $Location `
         --runtime node `
-        --runtime-version 20 `
+        --runtime-version 22 `
         --functions-version 4 `
         --name $captchaFunctionAppName `
         --storage-account $StorageAccountName `
