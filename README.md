@@ -25,6 +25,7 @@ This repository provides:
 |----------|---------|----------|
 | **CIAM** | Customer sign-up/sign-in | `docs/`, `scripts/CIAM/` |
 | **Multi-Protocol Auth** | OAuth 2.0, SAML 2.0, WS-Federation | `docs/entra-ciam-authentication-protocols.md` |
+| **Custom Auth Extensions** | OnAttributeCollectionSubmit (Cert & CAPTCHA) | `custom-extensions/`, `docs/custom-authentication-extensions.md` |
 
 ---
 
@@ -62,6 +63,31 @@ This repository provides:
 ```
 
 📖 **Detailed guide**: [docs/entra-external-id-poc-guide.md](docs/entra-external-id-poc-guide.md)
+
+---
+
+### 🆕 Custom Authentication Extensions (OnAttributeCollectionSubmit)
+
+**Server-side validation during sign-up**: Certificate upload & CAPTCHA
+
+| Extension | Purpose | Runtime |
+|-----------|---------|---------|
+| **Certificate Validation** | Validate .cer file uploads (X.509) | .NET 8 |
+| **CAPTCHA Validation** | Google reCAPTCHA bot prevention | Node.js 18 |
+
+```powershell
+# Deploy both custom extensions
+.\scripts\CIAM\Deploy-CustomExtensions.ps1 `
+    -ResourceGroupName "rg-eeid-extensions" `
+    -RecaptchaSecret "6Lc_your_secret_key"
+
+# Deploy only certificate validation
+.\scripts\CIAM\Deploy-CustomExtensions.ps1 `
+    -ResourceGroupName "rg-eeid-extensions" `
+    -Scenario CertValidation
+```
+
+📖 **Detailed guide**: [docs/custom-authentication-extensions.md](docs/custom-authentication-extensions.md)
 
 ---
 
@@ -395,6 +421,7 @@ curl -X GET "https://{tenant-id}.ciamlogin.com/{tenant-id}/Saml2/GetMetadata"
 | `Set-CIAMIdentityProviders.ps1` | Add identity providers (Google, Facebook, etc.) | 5 min |
 | `Set-CIAMBranding.ps1` | Customize branding | 5 min |
 | `Deploy-CIAMFull.ps1` | Deploy complete CIAM setup | 15 min |
+| `Deploy-CustomExtensions.ps1` | Deploy OnAttributeCollectionSubmit extensions (Cert/CAPTCHA) | 10 min |
 
 ---
 
