@@ -12,7 +12,7 @@ This module implements **OnAttributeCollectionSubmit** custom authentication ext
 | Scenario | Description | Runtime | Path |
 |----------|-------------|---------|------|
 | **Certificate Validation** | Validates uploaded `.cer` files (X.509) during sign-up | .NET 8 (isolated) | `custom-extensions/cert-validation/` |
-| **CAPTCHA Validation** | Verifies Google reCAPTCHA tokens to prevent bot sign-ups | Node.js 18 | `custom-extensions/captcha-validation/` |
+| **CAPTCHA Validation** | Verifies Google reCAPTCHA tokens to prevent bot sign-ups | Node.js 20 | `custom-extensions/captcha-validation/` |
 
 ---
 
@@ -152,7 +152,7 @@ document.getElementById('cert-input').addEventListener('change', async (e) => {
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - Azure Functions Core Tools v4
 - Google reCAPTCHA site key + secret key ([Get keys](https://www.google.com/recaptcha/admin))
 
@@ -312,7 +312,7 @@ az functionapp create \
     --resource-group rg-eeid-extensions \
     --consumption-plan-location eastus \
     --runtime node \
-    --runtime-version 18 \
+    --runtime-version 20 \
     --functions-version 4 \
     --name func-eeid-captcha \
     --storage-account steeidextensions
