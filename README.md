@@ -36,7 +36,9 @@ This repository provides:
 - **Microsoft Azure** with at least one tenant
 - **Microsoft Entra ID P1/P2** license (for Conditional Access)
 - **PowerShell 7+** or **Windows PowerShell 5.1+**
-- **Node.js 18+** (for web app)
+- **Node.js 18+** (for web app and CAPTCHA extension)
+- **[Azure Functions Core Tools v4](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)** (for custom authentication extensions)
+- **.NET 8 SDK** (for certificate validation extension)
 - **Global Administrator** or **External Identity Administrator** role
 
 ### 1️⃣ CIAM - Customer Sign-Up/Sign-In
