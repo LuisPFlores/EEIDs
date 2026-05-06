@@ -1,0 +1,17 @@
+{
+  "name": "captcha-validation",
+  "version": "1.0.0",
+  "description": "OnAttributeCollectionSubmit - CAPTCHA validation for Entra External ID",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start",
+    "test": "node --test src/functions/*.test.js"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.0",
+    "axios": "^1.7.0"
+  },
+  "devDependencies": {
+    "azure-functions-core-tools": "^4.x"
+  }
+}
