@@ -257,18 +257,16 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
 Write-Step "Deployment Complete!"
 
 Write-Host "`n📋 NEXT STEPS - Register in Entra Admin Center:" -ForegroundColor Magenta
-Write-Host @"
-
-  1. Go to: https://entra.microsoft.com
-  2. Navigate to: External Identities → Custom authentication extensions
-  3. Click: + Create a custom extension
-  4. Select event: OnAttributeCollectionSubmit
-  5. Configure endpoint URL (from above)
-  6. Set authentication (configure app registration)
-  7. Assign to your User Flow:
-     - User flows → [Your Flow] → Attribute collection → Custom extensions
-
-"@ -ForegroundColor White
+Write-Host ""
+Write-Host "  1. Go to: https://entra.microsoft.com" -ForegroundColor White
+Write-Host "  2. Navigate to: External Identities -> Custom authentication extensions" -ForegroundColor White
+Write-Host "  3. Click: + Create a custom extension" -ForegroundColor White
+Write-Host "  4. Select event: OnAttributeCollectionSubmit" -ForegroundColor White
+Write-Host "  5. Configure endpoint URL (from above)" -ForegroundColor White
+Write-Host "  6. Set authentication (configure app registration)" -ForegroundColor White
+Write-Host "  7. Assign to your User Flow:" -ForegroundColor White
+Write-Host "     - User flows -> [Your Flow] -> Attribute collection -> Custom extensions" -ForegroundColor White
+Write-Host ""
 
 if ($Scenario -in @("CertValidation", "Both")) {
     Write-Host "  🔐 CERT VALIDATION:" -ForegroundColor Yellow
