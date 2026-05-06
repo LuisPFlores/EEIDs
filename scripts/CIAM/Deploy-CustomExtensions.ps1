@@ -239,7 +239,7 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
         Write-Info "Installing npm dependencies..."
         npm install --omit=dev
         if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
-        func azure functionapp publish $captchaFunctionAppName
+        func azure functionapp publish $captchaFunctionAppName --javascript
         if ($LASTEXITCODE -ne 0) { throw "Function publish failed" }
     }
     finally {
