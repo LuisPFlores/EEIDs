@@ -72,17 +72,17 @@ $ErrorActionPreference = "Stop"
 
 function Write-Step {
     param([string]$Message)
-    Write-Host "`n━━━ $Message ━━━" -ForegroundColor Cyan
+    Write-Host "`n--- $Message ---" -ForegroundColor Cyan
 }
 
 function Write-Success {
     param([string]$Message)
-    Write-Host "  ✅ $Message" -ForegroundColor Green
+    Write-Host "  [OK] $Message" -ForegroundColor Green
 }
 
 function Write-Info {
     param([string]$Message)
-    Write-Host "  ℹ️  $Message" -ForegroundColor Yellow
+    Write-Host "  [i] $Message" -ForegroundColor Yellow
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -256,7 +256,7 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
 
 Write-Step "Deployment Complete!"
 
-Write-Host "`n📋 NEXT STEPS - Register in Entra Admin Center:" -ForegroundColor Magenta
+Write-Host "`nNEXT STEPS - Register in Entra Admin Center:" -ForegroundColor Magenta
 Write-Host ""
 Write-Host "  1. Go to: https://entra.microsoft.com" -ForegroundColor White
 Write-Host "  2. Navigate to: External Identities -> Custom authentication extensions" -ForegroundColor White
@@ -269,7 +269,7 @@ Write-Host "     - User flows -> [Your Flow] -> Attribute collection -> Custom e
 Write-Host ""
 
 if ($Scenario -in @("CertValidation", "Both")) {
-    Write-Host "  🔐 CERT VALIDATION:" -ForegroundColor Yellow
+    Write-Host "  CERT VALIDATION:" -ForegroundColor Yellow
     Write-Host "     - Add custom attribute 'CertificateData' (String) to your user flow"
     Write-Host "     - Your custom UI must Base64-encode the .cer file before submission"
     Write-Host "     - Function App: $certFunctionAppName"
@@ -277,7 +277,7 @@ if ($Scenario -in @("CertValidation", "Both")) {
 }
 
 if ($Scenario -in @("CaptchaValidation", "Both")) {
-    Write-Host "  🤖 CAPTCHA VALIDATION:" -ForegroundColor Yellow
+    Write-Host "  CAPTCHA VALIDATION:" -ForegroundColor Yellow
     Write-Host "     - Add custom attribute 'CaptchaToken' (String, hidden) to your user flow"
     Write-Host "     - Add reCAPTCHA widget to your custom sign-up page"
     Write-Host "     - Inject token into the CaptchaToken attribute on form submit"
@@ -285,5 +285,5 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
     Write-Host ""
 }
 
-Write-Host "  📖 Full documentation: docs/custom-authentication-extensions.md" -ForegroundColor Gray
+Write-Host "  Full documentation: docs/custom-authentication-extensions.md" -ForegroundColor Gray
 Write-Host ""
