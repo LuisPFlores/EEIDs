@@ -168,14 +168,19 @@ if ($Scenario -in @("CertValidation", "Both")) {
         --storage-account $StorageAccountName `
         --output none
     Write-Success "Function App '$certFunctionAppName' created"
+    Write-Info "Waiting for Function App to become available..."
+    Start-Sleep -Seconds 30
 
     # Build and deploy
     $certPath = Join-Path $PSScriptRoot "..\..\custom-extensions\cert-validation"
     Push-Location $certPath
     try {
-        dotnet publish -c Release -o ./publish 2>&1 | Out-Null
+        Write-Info "Building .NET project..."
+        dotnet publish -c Release -o ./publish
+        if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed" }
         Push-Location ./publish
-        func azure functionapp publish $certFunctionAppName --dotnet-isolated 2>&1
+        func azure functionapp publish $certFunctionAppName --dotnet-isolated
+        if ($LASTEXITCODE -ne 0) { throw "Function publish failed" }
         Pop-Location
         Remove-Item -Recurse -Force ./publish -ErrorAction SilentlyContinue
     }
@@ -216,6 +221,8 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
         --storage-account $StorageAccountName `
         --output none
     Write-Success "Function App '$captchaFunctionAppName' created"
+    Write-Info "Waiting for Function App to become available..."
+    Start-Sleep -Seconds 30
 
     # Set reCAPTCHA secret
     az functionapp config appsettings set `
@@ -229,8 +236,11 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
     $captchaPath = Join-Path $PSScriptRoot "..\..\custom-extensions\captcha-validation"
     Push-Location $captchaPath
     try {
-        npm install --production 2>&1 | Out-Null
-        func azure functionapp publish $captchaFunctionAppName 2>&1
+        Write-Info "Installing npm dependencies..."
+        npm install --production
+        if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
+        func azure functionapp publish $captchaFunctionAppName
+        if ($LASTEXITCODE -ne 0) { throw "Function publish failed" }
     }
     finally {
         Pop-Location
