@@ -41,10 +41,11 @@ const pca = new msal.ConfidentialClientApplication(msalConfig);
 const SCOPES = ['openid', 'profile', 'email', 'offline_access'];
 
 // ---------------------------------------------------------------------------
-// POST /auth/verify-captcha — validate reCAPTCHA before allowing sign-up
+// POST /auth/verify-captcha — validate reCAPTCHA before allowing sign-in or sign-up
 // ---------------------------------------------------------------------------
 router.post('/verify-captcha', async (req, res) => {
   const captchaToken = req.body['g-recaptcha-response'];
+  const action = req.body.action; // 'signin' or 'signup'
 
   if (!captchaToken) {
     return res.status(400).json({ success: false, message: 'Please complete the CAPTCHA.' });
@@ -58,11 +59,13 @@ router.post('/verify-captcha', async (req, res) => {
     );
 
     if (verifyResponse.data.success) {
-      // CAPTCHA valid — generate the Entra sign-up URL and redirect
+      // CAPTCHA valid — generate the Entra auth URL
+      const prompt = action === 'signup' ? 'create' : 'login';
       const authUrl = await pca.getAuthCodeUrl({
         scopes: SCOPES,
         redirectUri: REDIRECT_URI,
         responseMode: msal.ResponseMode.QUERY,
+        prompt: prompt,
       });
       return res.json({ success: true, redirectUrl: authUrl });
     }

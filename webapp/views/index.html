@@ -36,23 +36,17 @@
       <rect x="12" y="12" width="11" height="11" fill="#FFB900"/>
     </svg>
     <h1>Welcome</h1>
-    <p>Sign in to access your account, or sign up as a new user.</p>
+    <p>Complete the CAPTCHA below to sign in or sign up.</p>
 
-    <!-- Sign In (existing users — no CAPTCHA needed) -->
-    <div class="actions">
-      <a class="btn" href="/auth/login">Sign in</a>
-    </div>
-
-    <hr class="divider" />
-
-    <!-- Sign Up (new users — CAPTCHA required) -->
-    <p class="section-label">New user? Complete the CAPTCHA to sign up</p>
-
+    <!-- Shared CAPTCHA -->
     <div class="recaptcha-wrapper">
       <div class="g-recaptcha" data-sitekey="RECAPTCHA_SITE_KEY_PLACEHOLDER" data-callback="onCaptchaSuccess" data-expired-callback="onCaptchaExpired"></div>
     </div>
 
-    <button class="btn" id="signup-btn" disabled onclick="submitSignup()">Sign up</button>
+    <div class="actions">
+      <button class="btn" id="signin-btn" disabled onclick="submitAction('signin')">Sign in</button>
+      <button class="btn btn-secondary" id="signup-btn" disabled onclick="submitAction('signup')">Sign up</button>
+    </div>
 
     <p class="error-msg" id="error-msg"></p>
     <p class="success-msg" id="success-msg">Verified! Redirecting...</p>
@@ -61,21 +55,20 @@
   </div>
 
   <script>
-    let captchaCompleted = false;
-
     function onCaptchaSuccess() {
-      captchaCompleted = true;
+      document.getElementById('signin-btn').disabled = false;
       document.getElementById('signup-btn').disabled = false;
       document.getElementById('error-msg').style.display = 'none';
     }
 
     function onCaptchaExpired() {
-      captchaCompleted = false;
+      document.getElementById('signin-btn').disabled = true;
       document.getElementById('signup-btn').disabled = true;
     }
 
-    async function submitSignup() {
-      const btn = document.getElementById('signup-btn');
+    async function submitAction(action) {
+      const signinBtn = document.getElementById('signin-btn');
+      const signupBtn = document.getElementById('signup-btn');
       const errorEl = document.getElementById('error-msg');
       const successEl = document.getElementById('success-msg');
       const token = grecaptcha.getResponse();
@@ -86,15 +79,15 @@
         return;
       }
 
-      btn.disabled = true;
-      btn.textContent = 'Verifying...';
+      signinBtn.disabled = true;
+      signupBtn.disabled = true;
       errorEl.style.display = 'none';
 
       try {
         const res = await fetch('/auth/verify-captcha', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 'g-recaptcha-response': token })
+          body: JSON.stringify({ 'g-recaptcha-response': token, action: action })
         });
 
         const data = await res.json();
@@ -105,18 +98,16 @@
         } else {
           errorEl.textContent = data.message || 'Verification failed.';
           errorEl.style.display = 'block';
-          btn.disabled = false;
-          btn.textContent = 'Sign up';
+          signinBtn.disabled = false;
+          signupBtn.disabled = false;
           grecaptcha.reset();
-          captchaCompleted = false;
         }
       } catch (err) {
         errorEl.textContent = 'Something went wrong. Please try again.';
         errorEl.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Sign up';
+        signinBtn.disabled = false;
+        signupBtn.disabled = false;
         grecaptcha.reset();
-        captchaCompleted = false;
       }
     }
   </script>
