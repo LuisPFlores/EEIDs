@@ -4,16 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EEIDS Web App</title>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', sans-serif; background: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
     .card { background: #fff; border-radius: 12px; padding: 48px 56px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
     .logo { width: 56px; height: 56px; margin: 0 auto 24px; }
     h1 { font-size: 1.6rem; color: #111827; margin-bottom: 8px; }
-    p { color: #6b7280; font-size: 0.95rem; margin-bottom: 32px; line-height: 1.5; }
-    .btn { display: inline-block; background: #0078d4; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-size: 0.95rem; font-weight: 600; transition: background 0.2s; }
+    p { color: #6b7280; font-size: 0.95rem; margin-bottom: 24px; line-height: 1.5; }
+    .btn { display: inline-block; background: #0078d4; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-size: 0.95rem; font-weight: 600; transition: background 0.2s; border: none; cursor: pointer; }
     .btn:hover { background: #005fa3; }
+    .btn:disabled { background: #9ca3af; cursor: not-allowed; }
+    .btn-secondary { background: #6b7280; margin-left: 8px; }
+    .btn-secondary:hover { background: #4b5563; }
     .providers { margin-top: 24px; font-size: 0.8rem; color: #9ca3af; }
+    .divider { margin: 24px 0; border: none; border-top: 1px solid #e5e7eb; }
+    .section-label { font-size: 0.85rem; color: #374151; font-weight: 600; margin-bottom: 16px; }
+    .recaptcha-wrapper { display: flex; justify-content: center; margin-bottom: 16px; }
+    .error-msg { color: #dc2626; font-size: 0.85rem; margin-top: 8px; display: none; }
+    .success-msg { color: #059669; font-size: 0.85rem; margin-top: 8px; display: none; }
+    .actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
   </style>
 </head>
 <body>
@@ -26,9 +36,89 @@
       <rect x="12" y="12" width="11" height="11" fill="#FFB900"/>
     </svg>
     <h1>Welcome</h1>
-    <p>Sign in to access your account. External users can register with email, Google, or a Microsoft account.</p>
-    <a class="btn" href="/auth/login">Sign in</a>
+    <p>Sign in to access your account, or sign up as a new user.</p>
+
+    <!-- Sign In (existing users — no CAPTCHA needed) -->
+    <div class="actions">
+      <a class="btn" href="/auth/login">Sign in</a>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- Sign Up (new users — CAPTCHA required) -->
+    <p class="section-label">New user? Complete the CAPTCHA to sign up</p>
+
+    <div class="recaptcha-wrapper">
+      <div class="g-recaptcha" data-sitekey="RECAPTCHA_SITE_KEY_PLACEHOLDER" data-callback="onCaptchaSuccess" data-expired-callback="onCaptchaExpired"></div>
+    </div>
+
+    <button class="btn" id="signup-btn" disabled onclick="submitSignup()">Sign up</button>
+
+    <p class="error-msg" id="error-msg"></p>
+    <p class="success-msg" id="success-msg">Verified! Redirecting...</p>
+
     <p class="providers">Supported: Email &middot; Google &middot; Microsoft Account</p>
   </div>
+
+  <script>
+    let captchaCompleted = false;
+
+    function onCaptchaSuccess() {
+      captchaCompleted = true;
+      document.getElementById('signup-btn').disabled = false;
+      document.getElementById('error-msg').style.display = 'none';
+    }
+
+    function onCaptchaExpired() {
+      captchaCompleted = false;
+      document.getElementById('signup-btn').disabled = true;
+    }
+
+    async function submitSignup() {
+      const btn = document.getElementById('signup-btn');
+      const errorEl = document.getElementById('error-msg');
+      const successEl = document.getElementById('success-msg');
+      const token = grecaptcha.getResponse();
+
+      if (!token) {
+        errorEl.textContent = 'Please complete the CAPTCHA.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+      errorEl.style.display = 'none';
+
+      try {
+        const res = await fetch('/auth/verify-captcha', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 'g-recaptcha-response': token })
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.redirectUrl) {
+          successEl.style.display = 'block';
+          window.location.href = data.redirectUrl;
+        } else {
+          errorEl.textContent = data.message || 'Verification failed.';
+          errorEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Sign up';
+          grecaptcha.reset();
+          captchaCompleted = false;
+        }
+      } catch (err) {
+        errorEl.textContent = 'Something went wrong. Please try again.';
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Sign up';
+        grecaptcha.reset();
+        captchaCompleted = false;
+      }
+    }
+  </script>
 </body>
 </html>

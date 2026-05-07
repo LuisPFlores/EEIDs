@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+        .logo {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 24px;
+        }
+        h1 {
+            font-size: 1.5rem;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        /* Entra injects its form elements into #attributeVerification or #api */
+        #api {
+            margin-bottom: 16px;
+        }
+
+        /* Style Entra's injected form fields */
+        #api .entry .entry-item {
+            margin-bottom: 16px;
+        }
+        #api input[type="text"],
+        #api input[type="email"],
+        #api input[type="password"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        #api input:focus {
+            outline: none;
+            border-color: #0078d4;
+            box-shadow: 0 0 0 3px rgba(0,120,212,0.1);
+        }
+        #api label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+
+        /* reCAPTCHA container */
+        .recaptcha-container {
+            margin: 16px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Style Entra's buttons */
+        #api button,
+        #api .buttons button {
+            background: #0078d4;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        #api button:hover {
+            background: #005fa3;
+        }
+        #api button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* Error messages */
+        .error-message,
+        #api .error {
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+        .captcha-error {
+            color: #dc2626;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 8px;
+            display: none;
+        }
+
+        /* Hide the CaptchaToken field from users */
+        #api .TextBox[aria-label*="Captcha"],
+        #api .TextBox[aria-label*="captcha"],
+        #api li[aria-label*="Captcha"],
+        #api li[aria-label*="captcha"],
+        [id*="CaptchaToken"] {
+            display: none !important;
+        }
+    </style>
+
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Microsoft logo -->
+        <svg class="logo" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="11" height="11" fill="#F25022"/>
+            <rect x="12" width="11" height="11" fill="#7FBA00"/>
+            <rect y="12" width="11" height="11" fill="#00A4EF"/>
+            <rect x="12" y="12" width="11" height="11" fill="#FFB900"/>
+        </svg>
+        <h1>Create your account</h1>
+        <p class="subtitle">Complete the form below to sign up.</p>
+
+        <!-- Entra injects the attribute collection form here -->
+        <div id="api"></div>
+
+        <!-- reCAPTCHA widget (inserted after Entra's form fields) -->
+        <div class="recaptcha-container">
+            <div class="g-recaptcha"
+                 data-sitekey="REPLACE_WITH_YOUR_RECAPTCHA_SITE_KEY"
+                 data-callback="onCaptchaSuccess"
+                 data-expired-callback="onCaptchaExpired">
+            </div>
+        </div>
+        <p class="captcha-error" id="captcha-error">Please complete the CAPTCHA verification.</p>
+    </div>
+
+    <script>
+        // ─────────────────────────────────────────────────────────────────────
+        // reCAPTCHA Integration
+        // Injects the reCAPTCHA token into the hidden CaptchaToken attribute
+        // field that Entra sends to the OnAttributeCollectionSubmit extension.
+        // ─────────────────────────────────────────────────────────────────────
+
+        let captchaToken = null;
+
+        function onCaptchaSuccess(token) {
+            captchaToken = token;
+            document.getElementById('captcha-error').style.display = 'none';
+            setCaptchaTokenField(token);
+        }
+
+        function onCaptchaExpired() {
+            captchaToken = null;
+            setCaptchaTokenField('');
+        }
+
+        // Find and set the hidden CaptchaToken attribute field
+        function setCaptchaTokenField(value) {
+            // Entra names custom attributes as: extension_<appId>_CaptchaToken
+            // Try multiple selector patterns to find the field
+            const selectors = [
+                'input[id*="CaptchaToken"]',
+                'input[name*="CaptchaToken"]',
+                'input[id*="captchatoken"]',
+                'input[name*="captchatoken"]',
+                'input[id*="captchaToken"]'
+            ];
+
+            for (const selector of selectors) {
+                const field = document.querySelector(selector);
+                if (field) {
+                    field.value = value;
+                    // Trigger change event so Entra picks up the value
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                    return;
+                }
+            }
+            console.warn('[reCAPTCHA] CaptchaToken field not found in DOM yet. Will retry on submit.');
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Intercept form submission to validate CAPTCHA before Entra submits
+        // ─────────────────────────────────────────────────────────────────────
+
+        function interceptSubmit() {
+            // Observe the DOM for Entra's continue/submit button
+            const observer = new MutationObserver(() => {
+                const continueBtn = document.querySelector('#api button[id*="continue"], #api button[type="submit"], #api .buttons button');
+                if (continueBtn && !continueBtn.dataset.captchaHooked) {
+                    continueBtn.dataset.captchaHooked = 'true';
+
+                    continueBtn.addEventListener('click', function(e) {
+                        if (!captchaToken) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            document.getElementById('captcha-error').style.display = 'block';
+                            return false;
+                        }
+                        // Ensure token is set right before submission
+                        setCaptchaTokenField(captchaToken);
+                    }, true); // Use capture phase to run before Entra's handler
+                }
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
+
+        // Start intercepting once DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', interceptSubmit);
+        } else {
+            interceptSubmit();
+        }
+    </script>
+</body>
+</html>

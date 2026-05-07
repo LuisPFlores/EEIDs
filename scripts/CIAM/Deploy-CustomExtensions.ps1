@@ -65,6 +65,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$env:AZURE_CORE_ONLY_SHOW_ERRORS = "true"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helper Functions
@@ -72,17 +73,17 @@ $ErrorActionPreference = "Stop"
 
 function Write-Step {
     param([string]$Message)
-    Write-Host "`n━━━ $Message ━━━" -ForegroundColor Cyan
+    Write-Host "`n--- $Message ---" -ForegroundColor Cyan
 }
 
 function Write-Success {
     param([string]$Message)
-    Write-Host "  ✅ $Message" -ForegroundColor Green
+    Write-Host "  [OK] $Message" -ForegroundColor Green
 }
 
 function Write-Info {
     param([string]$Message)
-    Write-Host "  ℹ️  $Message" -ForegroundColor Yellow
+    Write-Host "  [i] $Message" -ForegroundColor Yellow
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -167,14 +168,19 @@ if ($Scenario -in @("CertValidation", "Both")) {
         --storage-account $StorageAccountName `
         --output none
     Write-Success "Function App '$certFunctionAppName' created"
+    Write-Info "Waiting for Function App to become available..."
+    Start-Sleep -Seconds 30
 
     # Build and deploy
-    $certPath = Join-Path $PSScriptRoot "..\custom-extensions\cert-validation"
+    $certPath = Join-Path $PSScriptRoot "..\..\custom-extensions\cert-validation"
     Push-Location $certPath
     try {
-        dotnet publish -c Release -o ./publish 2>&1 | Out-Null
+        Write-Info "Building .NET project..."
+        dotnet publish -c Release -o ./publish
+        if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed" }
         Push-Location ./publish
-        func azure functionapp publish $certFunctionAppName --dotnet-isolated 2>&1
+        func azure functionapp publish $certFunctionAppName --dotnet-isolated
+        if ($LASTEXITCODE -ne 0) { throw "Function publish failed" }
         Pop-Location
         Remove-Item -Recurse -Force ./publish -ErrorAction SilentlyContinue
     }
@@ -209,12 +215,14 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
         --resource-group $ResourceGroupName `
         --consumption-plan-location $Location `
         --runtime node `
-        --runtime-version 18 `
+        --runtime-version 22 `
         --functions-version 4 `
         --name $captchaFunctionAppName `
         --storage-account $StorageAccountName `
         --output none
     Write-Success "Function App '$captchaFunctionAppName' created"
+    Write-Info "Waiting for Function App to become available..."
+    Start-Sleep -Seconds 30
 
     # Set reCAPTCHA secret
     az functionapp config appsettings set `
@@ -225,11 +233,14 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
     Write-Success "reCAPTCHA secret configured"
 
     # Deploy
-    $captchaPath = Join-Path $PSScriptRoot "..\custom-extensions\captcha-validation"
+    $captchaPath = Join-Path $PSScriptRoot "..\..\custom-extensions\captcha-validation"
     Push-Location $captchaPath
     try {
-        npm install --production 2>&1 | Out-Null
-        func azure functionapp publish $captchaFunctionAppName 2>&1
+        Write-Info "Installing npm dependencies..."
+        npm install --omit=dev
+        if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
+        func azure functionapp publish $captchaFunctionAppName --javascript
+        if ($LASTEXITCODE -ne 0) { throw "Function publish failed" }
     }
     finally {
         Pop-Location
@@ -256,7 +267,7 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
 
 Write-Step "Deployment Complete!"
 
-Write-Host "`n📋 NEXT STEPS - Register in Entra Admin Center:" -ForegroundColor Magenta
+Write-Host "`nNEXT STEPS - Register in Entra Admin Center:" -ForegroundColor Magenta
 Write-Host ""
 Write-Host "  1. Go to: https://entra.microsoft.com" -ForegroundColor White
 Write-Host "  2. Navigate to: External Identities -> Custom authentication extensions" -ForegroundColor White
@@ -269,7 +280,7 @@ Write-Host "     - User flows -> [Your Flow] -> Attribute collection -> Custom e
 Write-Host ""
 
 if ($Scenario -in @("CertValidation", "Both")) {
-    Write-Host "  🔐 CERT VALIDATION:" -ForegroundColor Yellow
+    Write-Host "  CERT VALIDATION:" -ForegroundColor Yellow
     Write-Host "     - Add custom attribute 'CertificateData' (String) to your user flow"
     Write-Host "     - Your custom UI must Base64-encode the .cer file before submission"
     Write-Host "     - Function App: $certFunctionAppName"
@@ -277,7 +288,7 @@ if ($Scenario -in @("CertValidation", "Both")) {
 }
 
 if ($Scenario -in @("CaptchaValidation", "Both")) {
-    Write-Host "  🤖 CAPTCHA VALIDATION:" -ForegroundColor Yellow
+    Write-Host "  CAPTCHA VALIDATION:" -ForegroundColor Yellow
     Write-Host "     - Add custom attribute 'CaptchaToken' (String, hidden) to your user flow"
     Write-Host "     - Add reCAPTCHA widget to your custom sign-up page"
     Write-Host "     - Inject token into the CaptchaToken attribute on form submit"
@@ -285,5 +296,5 @@ if ($Scenario -in @("CaptchaValidation", "Both")) {
     Write-Host ""
 }
 
-Write-Host "  📖 Full documentation: docs/custom-authentication-extensions.md" -ForegroundColor Gray
+Write-Host "  Full documentation: docs/custom-authentication-extensions.md" -ForegroundColor Gray
 Write-Host ""
