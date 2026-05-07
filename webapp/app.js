@@ -19,7 +19,6 @@ app.use(session({
   }
 }));
 
-app.use(express.static(path.join(__dirname, 'views')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -33,6 +32,9 @@ app.get('/', (req, res) => {
   html = html.replace('RECAPTCHA_SITE_KEY_PLACEHOLDER', process.env.RECAPTCHA_SITE_KEY || '');
   res.type('html').send(html);
 });
+
+// Static files (CSS, JS, images, profile.html, etc.)
+app.use(express.static(path.join(__dirname, 'views')));
 
 // Protected profile page
 app.get('/profile', requireAuth, (req, res) => {
