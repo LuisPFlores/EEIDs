@@ -8,24 +8,20 @@ const router = express.Router();
 // App Settings in Azure Web Apps for production)
 // ---------------------------------------------------------------------------
 const {
-  TENANT_NAME,     // External CIAM tenant subdomain (e.g. "alcatraz")
-  TENANT_ID,       // External CIAM tenant ID (GUID)
+  TENANT_ID,       // Entra tenant ID (GUID)
   CLIENT_ID,       // App registration client ID
   CLIENT_SECRET,   // App registration client secret
   REDIRECT_URI,    // Must match the redirect URI registered in Entra
-  USER_FLOW,       // Name of the CIAM user flow, e.g. "B2C_1_SignUpSignIn"
   RECAPTCHA_SECRET,  // Google reCAPTCHA secret key
 } = process.env;
 
-const authorityBase = `https://${TENANT_NAME}.ciamlogin.com/${TENANT_ID}`;
-const authority = USER_FLOW ? `${authorityBase}/${USER_FLOW}` : authorityBase;
+const authority = `https://login.microsoftonline.com/${TENANT_ID}`;
 
 const msalConfig = {
   auth: {
     clientId: CLIENT_ID,
     authority,
     clientSecret: CLIENT_SECRET,
-    knownAuthorities: [`${TENANT_NAME}.ciamlogin.com`],
   },
   system: {
     loggerOptions: {
@@ -123,14 +119,14 @@ router.get('/redirect', async (req, res, next) => {
 });
 
 // ---------------------------------------------------------------------------
-// GET /auth/logout — clear session and redirect to CIAM global sign-out
+// GET /auth/logout — clear session and redirect to Entra global sign-out
 // ---------------------------------------------------------------------------
 router.get('/logout', (req, res, next) => {
   req.session.destroy((err) => {
     if (err) return next(err);
     const postLogoutUri = encodeURIComponent(`${REDIRECT_URI.replace('/auth/redirect', '')}/`);
     res.redirect(
-      `${authorityBase}/${USER_FLOW}/oauth2/v2.0/logout?post_logout_redirect_uri=${postLogoutUri}`
+      `${authority}/oauth2/v2.0/logout?post_logout_redirect_uri=${postLogoutUri}`
     );
   });
 });
