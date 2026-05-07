@@ -1,5 +1,6 @@
 const express = require('express');
 const msal = require('@azure/msal-node');
+const axios = require('axios');
 const router = express.Router();
 
 // ---------------------------------------------------------------------------
@@ -12,6 +13,7 @@ const {
   CLIENT_SECRET,   // App registration client secret
   REDIRECT_URI,    // Must match the redirect URI registered in Entra
   USER_FLOW,       // Name of the CIAM user flow, e.g. "B2C_1_SignUpSignIn"
+  RECAPTCHA_SECRET,  // Google reCAPTCHA secret key
 } = process.env;
 
 const authorityBase = `https://${TENANT_ID}.ciamlogin.com/${TENANT_ID}`;
@@ -38,6 +40,40 @@ const msalConfig = {
 const pca = new msal.ConfidentialClientApplication(msalConfig);
 
 const SCOPES = ['openid', 'profile', 'email', 'offline_access'];
+
+// ---------------------------------------------------------------------------
+// POST /auth/verify-captcha — validate reCAPTCHA before allowing sign-up
+// ---------------------------------------------------------------------------
+router.post('/verify-captcha', async (req, res) => {
+  const captchaToken = req.body['g-recaptcha-response'];
+
+  if (!captchaToken) {
+    return res.status(400).json({ success: false, message: 'Please complete the CAPTCHA.' });
+  }
+
+  try {
+    const verifyResponse = await axios.post(
+      'https://www.google.com/recaptcha/api/siteverify',
+      null,
+      { params: { secret: RECAPTCHA_SECRET, response: captchaToken } }
+    );
+
+    if (verifyResponse.data.success) {
+      // CAPTCHA valid — generate the Entra sign-up URL and redirect
+      const authUrl = await pca.getAuthCodeUrl({
+        scopes: SCOPES,
+        redirectUri: REDIRECT_URI,
+        responseMode: msal.ResponseMode.QUERY,
+      });
+      return res.json({ success: true, redirectUrl: authUrl });
+    }
+
+    return res.status(403).json({ success: false, message: 'CAPTCHA verification failed. Please try again.' });
+  } catch (err) {
+    console.error('[CAPTCHA] Verification error:', err.message);
+    return res.status(500).json({ success: false, message: 'Verification service error. Please try again.' });
+  }
+});
 
 // ---------------------------------------------------------------------------
 // GET /auth/login — redirect user to Entra CIAM sign-in page

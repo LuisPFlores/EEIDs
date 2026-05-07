@@ -20,13 +20,18 @@ app.use(session({
 }));
 
 app.use(express.static(path.join(__dirname, 'views')));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Auth routes: /auth/login, /auth/redirect, /auth/logout
 app.use('/auth', authRouter);
 
-// Public home page
+// Public home page — inject reCAPTCHA site key
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
+  const fs = require('fs');
+  let html = fs.readFileSync(path.join(__dirname, 'views', 'index.html'), 'utf8');
+  html = html.replace('RECAPTCHA_SITE_KEY_PLACEHOLDER', process.env.RECAPTCHA_SITE_KEY || '');
+  res.type('html').send(html);
 });
 
 // Protected profile page
