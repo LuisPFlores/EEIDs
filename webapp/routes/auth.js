@@ -8,6 +8,7 @@ const router = express.Router();
 // App Settings in Azure Web Apps for production)
 // ---------------------------------------------------------------------------
 const {
+  TENANT_NAME,     // External CIAM tenant subdomain (e.g. "alcatraz")
   TENANT_ID,       // External CIAM tenant ID (GUID)
   CLIENT_ID,       // App registration client ID
   CLIENT_SECRET,   // App registration client secret
@@ -16,15 +17,15 @@ const {
   RECAPTCHA_SECRET,  // Google reCAPTCHA secret key
 } = process.env;
 
-const authorityBase = `https://${TENANT_ID}.ciamlogin.com/${TENANT_ID}`;
-const authority = `${authorityBase}/${USER_FLOW}`;
+const authorityBase = `https://${TENANT_NAME}.ciamlogin.com/${TENANT_ID}`;
+const authority = USER_FLOW ? `${authorityBase}/${USER_FLOW}` : authorityBase;
 
 const msalConfig = {
   auth: {
     clientId: CLIENT_ID,
     authority,
     clientSecret: CLIENT_SECRET,
-    knownAuthorities: [`${TENANT_ID}.ciamlogin.com`],
+    knownAuthorities: [`${TENANT_NAME}.ciamlogin.com`],
   },
   system: {
     loggerOptions: {
