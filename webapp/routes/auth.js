@@ -8,20 +8,22 @@ const router = express.Router();
 // App Settings in Azure Web Apps for production)
 // ---------------------------------------------------------------------------
 const {
-  TENANT_ID,       // Entra tenant ID (GUID)
+  TENANT_NAME,     // CIAM tenant subdomain (e.g. "titacorp")
+  TENANT_ID,       // Entra External ID tenant ID (GUID)
   CLIENT_ID,       // App registration client ID
   CLIENT_SECRET,   // App registration client secret
   REDIRECT_URI,    // Must match the redirect URI registered in Entra
   RECAPTCHA_SECRET,  // Google reCAPTCHA secret key
 } = process.env;
 
-const authority = `https://login.microsoftonline.com/${TENANT_ID}`;
+const authority = `https://${TENANT_NAME}.ciamlogin.com/${TENANT_ID}`;
 
 const msalConfig = {
   auth: {
     clientId: CLIENT_ID,
     authority,
     clientSecret: CLIENT_SECRET,
+    knownAuthorities: [`${TENANT_NAME}.ciamlogin.com`],
   },
   system: {
     loggerOptions: {
