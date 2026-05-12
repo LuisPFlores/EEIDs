@@ -8,23 +8,25 @@ const router = express.Router();
 // App Settings in Azure Web Apps for production)
 // ---------------------------------------------------------------------------
 const {
-  TENANT_ID,       // External CIAM tenant ID (GUID)
-  CLIENT_ID,       // App registration client ID
-  CLIENT_SECRET,   // App registration client secret
-  REDIRECT_URI,    // Must match the redirect URI registered in Entra
-  USER_FLOW,       // Name of the CIAM user flow, e.g. "B2C_1_SignUpSignIn"
-  RECAPTCHA_SECRET,  // Google reCAPTCHA secret key
+  TENANT_ID,          // External CIAM tenant ID (GUID)
+  TENANT_SUBDOMAIN,   // e.g. "titacorp.onmicrosoft.com"
+  CLIENT_ID,          // App registration client ID
+  CLIENT_SECRET,      // App registration client secret
+  REDIRECT_URI,       // Must match the redirect URI registered in Entra
+  RECAPTCHA_SECRET,   // Google reCAPTCHA secret key
 } = process.env;
 
-const authorityBase = `https://${TENANT_ID}.ciamlogin.com/${TENANT_ID}`;
-const authority = `${authorityBase}/${USER_FLOW}`;
+// Extract short subdomain (e.g. "titacorp" from "titacorp.onmicrosoft.com")
+const subdomain = TENANT_SUBDOMAIN?.split('.')[0];
+const authorityBase = `https://${subdomain}.ciamlogin.com/${TENANT_SUBDOMAIN}`;
+const authority = authorityBase;
 
 const msalConfig = {
   auth: {
     clientId: CLIENT_ID,
     authority,
     clientSecret: CLIENT_SECRET,
-    knownAuthorities: [`${TENANT_ID}.ciamlogin.com`],
+    knownAuthorities: [`${subdomain}.ciamlogin.com`],
   },
   system: {
     loggerOptions: {
@@ -129,7 +131,7 @@ router.get('/logout', (req, res, next) => {
     if (err) return next(err);
     const postLogoutUri = encodeURIComponent(`${REDIRECT_URI.replace('/auth/redirect', '')}/`);
     res.redirect(
-      `${authorityBase}/${USER_FLOW}/oauth2/v2.0/logout?post_logout_redirect_uri=${postLogoutUri}`
+      `${authorityBase}/oauth2/v2.0/logout?post_logout_redirect_uri=${postLogoutUri}`
     );
   });
 });
