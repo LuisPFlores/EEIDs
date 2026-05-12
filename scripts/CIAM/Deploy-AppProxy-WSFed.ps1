@@ -82,45 +82,45 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Helper functions
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 function Write-Step {
-    param([string]$Message, [string]$Icon = "🔹")
+    param([string]$Message, [string]$Icon = "[*]")
     Write-Host "`n$Icon $Message" -ForegroundColor Cyan
-    Write-Host ("─" * 60) -ForegroundColor DarkGray
+    Write-Host ("=" * 60) -ForegroundColor DarkGray
 }
 
 function Write-Success {
     param([string]$Message)
-    Write-Host "  ✅ $Message" -ForegroundColor Green
+    Write-Host "  [OK] $Message" -ForegroundColor Green
 }
 
 function Write-Warn {
     param([string]$Message)
-    Write-Host "  ⚠️  $Message" -ForegroundColor Yellow
+    Write-Host "  [!] $Message" -ForegroundColor Yellow
 }
 
 function Write-Fail {
     param([string]$Message)
-    Write-Host "  ❌ $Message" -ForegroundColor Red
+    Write-Host "  [X] $Message" -ForegroundColor Red
 }
 
 function Write-Info {
     param([string]$Message)
-    Write-Host "  ℹ️  $Message" -ForegroundColor White
+    Write-Host "  [i] $Message" -ForegroundColor White
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # STEP 1: Verify prerequisites
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
-Write-Host "`n════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  Entra Application Proxy — WS-Federation Deployment" -ForegroundColor Cyan
-Write-Host "════════════════════════════════════════════════════════════`n" -ForegroundColor Cyan
+Write-Host "`n============================================================" -ForegroundColor Cyan
+Write-Host "  Entra Application Proxy - WS-Federation Deployment" -ForegroundColor Cyan
+Write-Host "============================================================`n" -ForegroundColor Cyan
 
-Write-Step "Verifying prerequisites" "1️⃣"
+Write-Step "Verifying prerequisites" "[1]"
 
 # Check Microsoft.Graph module
 $requiredModules = @(
@@ -148,11 +148,11 @@ if (-not $SkipFederationUpdate) {
     }
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # STEP 2: Connect to Microsoft Graph
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
-Write-Step "Connecting to Microsoft Graph" "2️⃣"
+Write-Step "Connecting to Microsoft Graph" "[2]"
 
 $requiredScopes = @(
     "Application.ReadWrite.All",
@@ -169,11 +169,11 @@ if ($context) {
     Write-Success "Connected as $($context.Account)"
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # STEP 3: Verify App Proxy connectors
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
-Write-Step "Checking Application Proxy connectors" "3️⃣"
+Write-Step "Checking Application Proxy connectors" "[3]"
 
 try {
     $connectorGroups = Get-MgBetaOnPremisePublishingProfileConnectorGroup `
@@ -197,11 +197,11 @@ try {
                 $activeConnectors = $connectors | Where-Object { $_.Status -eq "active" }
                 Write-Success "$($activeConnectors.Count) active connector(s) in group"
                 foreach ($c in $activeConnectors) {
-                    Write-Info "  → $($c.MachineName) ($($c.Status))"
+                    Write-Info "  -> $($c.MachineName) ($($c.Status))"
                 }
             } else {
                 Write-Warn "No connectors found in group '$ConnectorGroupName'"
-                Write-Warn "Install a connector first: Entra admin center → Global Secure Access → Connectors"
+                Write-Warn "Install a connector first: Entra admin center -> Global Secure Access -> Connectors"
             }
         } else {
             Write-Fail "Connector group '$ConnectorGroupName' not found"
@@ -211,7 +211,7 @@ try {
         }
     } else {
         Write-Fail "No connector groups found. Install an App Proxy connector first."
-        Write-Info "Download from: Entra admin center → Global Secure Access → Connect → Connectors"
+        Write-Info "Download from: Entra admin center -> Global Secure Access -> Connect -> Connectors"
         exit 1
     }
 } catch {
@@ -221,11 +221,11 @@ try {
     if ($continue -ne 'y') { exit 1 }
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # STEP 4: Create the App Proxy application
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
-Write-Step "Creating Application Proxy enterprise application" "4️⃣"
+Write-Step "Creating Application Proxy enterprise application" "[4]"
 
 # Check if app already exists
 $existingApp = Get-MgApplication -Filter "displayName eq '$DisplayName'" -ErrorAction SilentlyContinue
@@ -250,7 +250,7 @@ $appBody = @{
     }
     onPremisesPublishing = @{
         internalUrl = $InternalUrl
-        externalAuthenticationType = "passthru"  # ADFS handles auth
+        externalAuthenticationType = "passthru"
         isTranslateHostHeaderEnabled = $true
         isTranslateLinksInBodyEnabled = $true
         isHttpOnlyCookieEnabled = $true
@@ -273,14 +273,14 @@ try {
     Write-Fail "Failed to create application: $($_.Exception.Message)"
     Write-Info ""
     Write-Info "If the API fails, create manually in the Entra admin center:"
-    Write-Info "  1. Enterprise applications → New application → Create your own"
+    Write-Info "  1. Enterprise applications -> New application -> Create your own"
     Write-Info "  2. Name: '$DisplayName'"
-    Write-Info "  3. Application Proxy → Configure:"
-    Write-Info "     • Internal URL: $InternalUrl"
-    Write-Info "     • Pre-authentication: Passthrough"
-    Write-Info "     • Connector group: $ConnectorGroupName"
-    Write-Info "     • Translate URLs in headers: Yes"
-    Write-Info "     • Translate URLs in body: Yes"
+    Write-Info "  3. Application Proxy -> Configure:"
+    Write-Info "     - Internal URL: $InternalUrl"
+    Write-Info "     - Pre-authentication: Passthrough"
+    Write-Info "     - Connector group: $ConnectorGroupName"
+    Write-Info "     - Translate URLs in headers: Yes"
+    Write-Info "     - Translate URLs in body: Yes"
 
     $app = $null
 }
@@ -297,7 +297,6 @@ if ($app) {
     # Assign connector group
     if ($targetGroup) {
         try {
-            # The connector group assignment is done via the app proxy config
             Write-Info "Connector group '$ConnectorGroupName' will be assigned"
         } catch {
             Write-Warn "Could not assign connector group: $($_.Exception.Message)"
@@ -317,12 +316,12 @@ if ($app -and $app.OnPremisesPublishing) {
 
 Write-Info "External URL: $externalUrl"
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # STEP 5: Update federation settings for camilco.net
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 if (-not $SkipFederationUpdate) {
-    Write-Step "Updating federation settings for $FederatedDomain" "5️⃣"
+    Write-Step "Updating federation settings for $FederatedDomain" "[5]"
 
     # Derive ADFS endpoints from external URL
     $externalBase = $externalUrl.TrimEnd('/')
@@ -388,7 +387,7 @@ if (-not $SkipFederationUpdate) {
             Write-Fail "Failed to update federation settings: $($_.Exception.Message)"
             Write-Info ""
             Write-Info "Manual update command:"
-            Write-Info @"
+            Write-Host @"
 
 Connect-MsolService
 Set-MsolDomainFederationSettings ``
@@ -403,18 +402,18 @@ Set-MsolDomainFederationSettings ``
         Write-Info "Skipped federation update"
     }
 } else {
-    Write-Step "Skipping federation settings update (use -SkipFederationUpdate:`$false to enable)" "5️⃣"
+    Write-Step "Skipping federation settings update (use -SkipFederationUpdate:`$false to enable)" "[5]"
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# STEP 6: Validation & summary
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# STEP 6: Validation and summary
+# -----------------------------------------------------------------------------
 
-Write-Step "Deployment Summary" "6️⃣"
+Write-Step "Deployment Summary" "[6]"
 
 Write-Host ""
 Write-Host "  Application Proxy Configuration" -ForegroundColor Cyan
-Write-Host "  ─────────────────────────────────────────────────" -ForegroundColor DarkGray
+Write-Host "  -----------------------------------------------" -ForegroundColor DarkGray
 Write-Info "  Display Name:       $DisplayName"
 Write-Info "  Internal URL:       $InternalUrl"
 Write-Info "  External URL:       $externalUrl"
@@ -427,18 +426,15 @@ if ($app) {
 
 Write-Host ""
 Write-Host "  WS-Fed Webapp Configuration (.env updates)" -ForegroundColor Cyan
-Write-Host "  ─────────────────────────────────────────────────" -ForegroundColor DarkGray
+Write-Host "  -----------------------------------------------" -ForegroundColor DarkGray
 Write-Info "  No changes needed for localhost testing"
 Write-Info "  For production deployment, update webapp-wsfed/.env:"
 Write-Info "    WSFED_REPLY_URL=https://<your-app-host>/auth/callback"
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Validation checks
-# ─────────────────────────────────────────────────────────────────────────────
-
 Write-Host ""
 Write-Host "  Validation Checklist" -ForegroundColor Cyan
-Write-Host "  ─────────────────────────────────────────────────" -ForegroundColor DarkGray
+Write-Host "  -----------------------------------------------" -ForegroundColor DarkGray
 
 # Test external URL reachability (if available)
 if ($externalUrl -and $externalUrl -notlike '*<auto*') {
@@ -449,7 +445,7 @@ if ($externalUrl -and $externalUrl -notlike '*<auto*') {
         if ($_.Exception.Response.StatusCode.value__) {
             Write-Success "External URL responds (HTTP $($_.Exception.Response.StatusCode.value__))"
         } else {
-            Write-Warn "External URL not yet reachable — connector may need time to sync"
+            Write-Warn "External URL not yet reachable - connector may need time to sync"
         }
     }
 } else {
@@ -458,7 +454,7 @@ if ($externalUrl -and $externalUrl -notlike '*<auto*') {
 
 Write-Host ""
 Write-Host "  Next Steps" -ForegroundColor Cyan
-Write-Host "  ─────────────────────────────────────────────────" -ForegroundColor DarkGray
+Write-Host "  -----------------------------------------------" -ForegroundColor DarkGray
 Write-Host "  1. Verify the connector is Active in Entra admin center" -ForegroundColor White
 Write-Host "  2. Browse to the external URL and confirm ADFS login page loads" -ForegroundColor White
 Write-Host "  3. Test WS-Fed sign-in: http://localhost:3001/auth/login" -ForegroundColor White
@@ -466,11 +462,11 @@ Write-Host "     Sign in with a user@$FederatedDomain account" -ForegroundColor 
 
 if ($ExternalHostName) {
     Write-Host "  4. Create CNAME DNS record:" -ForegroundColor White
-    Write-Host "     $ExternalHostName → <app>.msappproxy.net" -ForegroundColor Gray
+    Write-Host "     $ExternalHostName -> <app>.msappproxy.net" -ForegroundColor Gray
     Write-Host "  5. Upload public TLS certificate for $ExternalHostName" -ForegroundColor White
 }
 
 Write-Host ""
-Write-Host "════════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
 Write-Host "  Deployment complete" -ForegroundColor Green
-Write-Host "════════════════════════════════════════════════════════════`n" -ForegroundColor Cyan
+Write-Host "============================================================`n" -ForegroundColor Cyan
