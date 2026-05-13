@@ -156,9 +156,25 @@ if ($context) {
     Write-Success "Already connected as $($context.Account)"
 } else {
     Write-Info "Launching sign-in (device code flow)..."
-    Connect-MgGraph -Scopes $requiredScopes -TenantId $TenantId -UseDeviceCode
+    try {
+        Connect-MgGraph -Scopes $requiredScopes -TenantId $TenantId -UseDeviceCode -NoWelcome -ErrorAction Stop
+    } catch {
+        # Check if connection succeeded despite telemetry error
+        $context = Get-MgContext
+        if (-not $context) {
+            Write-Fail "Connection failed: $($_.Exception.Message)"
+            Write-Info "Try connecting manually first:"
+            Write-Host "  Connect-MgGraph -Scopes 'Application.ReadWrite.All','Directory.ReadWrite.All','Domain.ReadWrite.All' -TenantId '$TenantId' -UseDeviceCode"
+            exit 1
+        }
+    }
     $context = Get-MgContext
-    Write-Success "Connected as $($context.Account)"
+    if ($context) {
+        Write-Success "Connected as $($context.Account)"
+    } else {
+        Write-Fail "Could not establish connection"
+        exit 1
+    }
 }
 
 # -----------------------------------------------------------------------------
