@@ -155,8 +155,8 @@ $context = Get-MgContext
 if ($context) {
     Write-Success "Already connected as $($context.Account)"
 } else {
-    Write-Info "Launching sign-in..."
-    Connect-MgGraph -Scopes $requiredScopes -TenantId $TenantId
+    Write-Info "Launching sign-in (device code flow)..."
+    Connect-MgGraph -Scopes $requiredScopes -TenantId $TenantId -UseDeviceCode
     $context = Get-MgContext
     Write-Success "Connected as $($context.Account)"
 }
