@@ -125,7 +125,8 @@ Write-Step "Verifying prerequisites" "[1]"
 # Check Microsoft.Graph module
 $requiredModules = @(
     "Microsoft.Graph.Applications",
-    "Microsoft.Graph.Beta.Applications"
+    "Microsoft.Graph.Beta.Applications",
+    "Microsoft.Graph.Identity.DirectoryManagement"
 )
 
 foreach ($mod in $requiredModules) {
@@ -138,16 +139,6 @@ foreach ($mod in $requiredModules) {
     }
 }
 
-if (-not $SkipFederationUpdate) {
-    if (Get-Module -ListAvailable -Name MSOnline) {
-        Write-Success "MSOnline module found"
-    } else {
-        Write-Warn "MSOnline not found. Installing..."
-        Install-Module -Name MSOnline -Scope CurrentUser -Force
-        Write-Success "MSOnline installed"
-    }
-}
-
 # -----------------------------------------------------------------------------
 # STEP 2: Connect to Microsoft Graph
 # -----------------------------------------------------------------------------
@@ -156,7 +147,8 @@ Write-Step "Connecting to Microsoft Graph" "[2]"
 
 $requiredScopes = @(
     "Application.ReadWrite.All",
-    "Directory.ReadWrite.All"
+    "Directory.ReadWrite.All",
+    "Domain.ReadWrite.All"
 )
 
 $context = Get-MgContext
@@ -342,60 +334,55 @@ if (-not $SkipFederationUpdate) {
 
     if ($confirm -eq 'y') {
         try {
-            # Connect to MSOnline if not already connected
-            try {
-                Get-MsolDomain -DomainName $FederatedDomain -ErrorAction Stop | Out-Null
-                Write-Success "Already connected to MSOnline"
-            } catch {
-                Write-Info "Connecting to MSOnline..."
-                Connect-MsolService
+            # Get current federation settings via Microsoft Graph
+            Write-Info "Querying current federation configuration..."
+            $fedConfigs = Get-MgDomainFederationConfiguration -DomainId $FederatedDomain -ErrorAction Stop
+
+            if ($fedConfigs) {
+                $currentConfig = $fedConfigs[0]
+                Write-Info "  Current Passive Sign-In URI: $($currentConfig.PassiveSignInUri)"
+                Write-Info "  Current Issuer URI:          $($currentConfig.IssuerUri)"
+                Write-Info "  Config ID:                   $($currentConfig.Id)"
+
+                # Update federation configuration
+                $updateParams = @{
+                    PassiveSignInUri              = $passiveLogOnUri
+                    ActiveSignInUri               = $activeLogOnUri
+                    MetadataExchangeUri           = $metadataExUri
+                    SignOutUri                    = $logoutUri
+                }
+
+                Update-MgDomainFederationConfiguration `
+                    -DomainId $FederatedDomain `
+                    -InternalDomainFederationId $currentConfig.Id `
+                    -BodyParameter $updateParams
+
+                Write-Success "Federation settings updated for $FederatedDomain"
+
+                # Verify
+                $updatedConfig = Get-MgDomainFederationConfiguration -DomainId $FederatedDomain
+                Write-Info "  Updated Passive Sign-In URI: $($updatedConfig[0].PassiveSignInUri)"
+                Write-Info "  Updated Active Sign-In URI:  $($updatedConfig[0].ActiveSignInUri)"
+            } else {
+                Write-Fail "No federation configuration found for $FederatedDomain"
+                Write-Info "The domain may not be configured as federated"
             }
-
-            # Get current federation settings for reference
-            Write-Info "Current federation settings:"
-            $currentSettings = Get-MsolDomainFederationSettings -DomainName $FederatedDomain -ErrorAction SilentlyContinue
-            if ($currentSettings) {
-                Write-Info "  Current Passive LogOn URI: $($currentSettings.PassiveLogOnUri)"
-                Write-Info "  Current Active LogOn URI:  $($currentSettings.ActiveLogOnUri)"
-                Write-Info "  Current Issuer URI:        $($currentSettings.IssuerUri)"
-            }
-
-            # Update federation settings
-            $federationParams = @{
-                DomainName           = $FederatedDomain
-                ActiveLogOnUri       = $activeLogOnUri
-                PassiveLogOnUri      = $passiveLogOnUri
-                MetadataExchangeUri  = $metadataExUri
-                LogOffUri            = $logoutUri
-            }
-
-            # Preserve the existing IssuerUri
-            if ($currentSettings.IssuerUri) {
-                $federationParams.IssuerUri = $currentSettings.IssuerUri
-                Write-Info "  Preserving IssuerUri: $($currentSettings.IssuerUri)"
-            }
-
-            Set-MsolDomainFederationSettings @federationParams
-            Write-Success "Federation settings updated for $FederatedDomain"
-
-            # Verify
-            $updatedSettings = Get-MsolDomainFederationSettings -DomainName $FederatedDomain
-            Write-Info "  Updated Passive LogOn URI: $($updatedSettings.PassiveLogOnUri)"
-            Write-Info "  Updated Active LogOn URI:  $($updatedSettings.ActiveLogOnUri)"
 
         } catch {
             Write-Fail "Failed to update federation settings: $($_.Exception.Message)"
             Write-Info ""
-            Write-Info "Manual update command:"
+            Write-Info "Manual update command (Microsoft Graph PowerShell):"
             Write-Host @"
 
-Connect-MsolService
-Set-MsolDomainFederationSettings ``
-    -DomainName "$FederatedDomain" ``
-    -ActiveLogOnUri "$activeLogOnUri" ``
-    -PassiveLogOnUri "$passiveLogOnUri" ``
+Connect-MgGraph -Scopes "Domain.ReadWrite.All"
+`$config = Get-MgDomainFederationConfiguration -DomainId "$FederatedDomain"
+Update-MgDomainFederationConfiguration ``
+    -DomainId "$FederatedDomain" ``
+    -InternalDomainFederationId `$config[0].Id ``
+    -PassiveSignInUri "$passiveLogOnUri" ``
+    -ActiveSignInUri "$activeLogOnUri" ``
     -MetadataExchangeUri "$metadataExUri" ``
-    -LogOffUri "$logoutUri"
+    -SignOutUri "$logoutUri"
 "@
         }
     } else {
